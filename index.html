@@ -91,31 +91,38 @@
 
       <!-- 100% Automated Auto-Pilot Market Mood Sensor -->
       <div class="safety-meter" id="market-safety-meter">
-        <div class="meter-title">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--profit); flex-shrink: 0;">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-          </svg>
-          <div>
-            <div style="font-size: 0.88rem; font-weight: 700;">
-              Today's Market Mood: <span id="regime-text-status" style="color: var(--profit);">Good Market (Safe to Buy)</span>
+        <div class="meter-header">
+          <div class="meter-title">
+            <div class="meter-icon-box">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
             </div>
-            <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 1px;">
-              🤖 Auto-Pilot Sensor: Automatically calculated from Nifty 50. No market knowledge needed.
+            <div>
+              <span class="meter-label">TODAY'S MARKET MOOD</span>
+              <div class="meter-status-line" id="regime-text-status">Good Market</div>
             </div>
           </div>
+          <div class="meter-badge-group">
+            <span class="meter-badge" id="regime-badge-pill">
+              <span class="pulse-dot"></span> Safe to Buy
+            </span>
+            <button type="button" class="btn-meter-test" id="btn-toggle-manual-mood" onclick="toggleManualMoodPanel()" title="Simulate different market conditions">⚙️ Test</button>
+          </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span class="meter-badge" id="regime-badge-pill" style="background: var(--profit);">Safe to Buy</span>
-          <button type="button" class="btn btn-outline" id="btn-toggle-manual-mood" onclick="toggleManualMoodPanel()" style="width: auto; padding: 2px 8px; font-size: 0.7rem;" title="Test different conditions">⚙️ Test</button>
+        <div class="meter-desc" id="regime-desc-text">
+          🤖 <strong>Auto-Pilot Sensor:</strong> Nifty 50 is in a strong uptrend. All suggested stock buy setups are safe to execute today. No manual research needed.
         </div>
       </div>
 
       <!-- Optional Test Panel for Market Condition -->
-      <div id="manual-mood-panel" style="display: none; margin-bottom: 1rem; padding: 0.6rem 0.85rem; background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); border: var(--glass-border); font-size: 0.75rem;">
-        <span style="color: var(--text-muted); margin-right: 8px;">Test different market simulations:</span>
-        <button class="btn btn-outline" style="width:auto; padding: 2px 8px; font-size: 0.7rem; margin-right: 4px;" onclick="setMarketCondition('good')">Simulate Good Market</button>
-        <button class="btn btn-outline" style="width:auto; padding: 2px 8px; font-size: 0.7rem; margin-right: 4px;" onclick="setMarketCondition('bad')">Simulate Falling Market</button>
-        <button class="btn btn-outline" style="width:auto; padding: 2px 8px; font-size: 0.7rem;" onclick="setMarketCondition('auto')">Auto-Pilot (Default)</button>
+      <div id="manual-mood-panel" style="display: none; margin-bottom: 1rem; padding: 0.65rem 0.85rem; background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); border: var(--glass-border); font-size: 0.75rem;">
+        <span style="color: var(--text-muted); display: block; margin-bottom: 6px; font-weight: 600;">Test different market simulations:</span>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button class="btn btn-outline" style="width:auto; padding: 4px 10px; font-size: 0.72rem;" onclick="setMarketCondition('good')">Simulate Good Market</button>
+          <button class="btn btn-outline" style="width:auto; padding: 4px 10px; font-size: 0.72rem;" onclick="setMarketCondition('bad')">Simulate Falling Market</button>
+          <button class="btn btn-outline" style="width:auto; padding: 4px 10px; font-size: 0.72rem;" onclick="setMarketCondition('auto')">Auto-Pilot (Default)</button>
+        </div>
       </div>
 
       <!-- What Should I Do Today? Hero Action Card -->
@@ -455,7 +462,7 @@
           <label class="form-label">Telegram Chat ID</label>
           <input type="text" class="form-control" id="setting-tg-chatid" placeholder="e.g. 987654321">
         </div>
-        <div style="display: flex; gap: 0.75rem;">
+        <div class="btn-row-mobile-stack">
           <button class="btn btn-primary" id="btn-save-telegram" style="flex: 1;">Save Telegram Config</button>
           <button class="btn btn-outline" id="btn-test-telegram" style="flex: 1;">Send Test Alert</button>
         </div>
@@ -530,13 +537,13 @@
           <input type="text" class="form-control" id="setting-firebase-key" placeholder="AIzaSy...">
         </div>
 
-        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+        <div class="btn-row-mobile-stack" style="margin-bottom: 1rem;">
           <button class="btn btn-primary" id="btn-save-db-config" style="flex: 1;">Save Database Config</button>
           <button class="btn btn-outline" id="btn-force-cloud-sync" style="flex: 1;">Sync Now</button>
         </div>
 
         <!-- Manual Backup / Restore -->
-        <div style="border-top: var(--glass-border); padding-top: 0.85rem; display: flex; gap: 0.5rem;">
+        <div class="btn-row-mobile-stack" style="border-top: var(--glass-border); padding-top: 0.85rem;">
           <button class="btn btn-outline" id="btn-download-backup" style="flex: 1; font-size: 0.8rem;">
             💾 Download Backup JSON
           </button>

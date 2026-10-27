@@ -123,3 +123,14 @@ Setting this up takes **less than 60 seconds**:
 1. **Test for 2 to 3 months:** Do not invest real money on day one. Practice with virtual money first.
 2. **Stick to the Stop Loss:** Always exit if the safety stop is hit. Never hold a losing trade hoping for a miracle.
 3. **Trade at 3:15 PM:** Avoid morning chaos. 3:15 PM gives you calm, reliable daily closing signals.
+
+---
+
+## 9. Opening on Multiple Devices (Phone Netlify & PC Localhost) Without Data Loss
+
+- TradeMitra is built with **automatic multi-device sync**.
+- When you use your Netlify URL on your mobile phone and localhost on your computer:
+  - Both devices connect to the same **Google Firebase Cloud Firestore** database.
+  - Any trade or PIN change you make on your phone immediately updates your computer in real time.
+  - If you are offline on your phone, **IndexedDB** saves your progress locally. As soon as your internet reconnects, it syncs to the cloud.
+- You can also tap **Settings -> Download Backup JSON** anytime to keep a manual copy of your trade history.

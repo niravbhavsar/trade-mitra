@@ -68,6 +68,31 @@ const DB = {
         updateCloudStatusBadge(true);
         console.log('Firebase Cloud Firestore successfully connected.');
 
+        // Initial Multi-Device Cloud Document Fetch
+        try {
+          const docRef = DB.firestore.collection('marketNirav').doc('appData');
+          const docSnap = await docRef.get();
+          if (docSnap.exists) {
+            const remoteData = docSnap.data();
+            const remoteTime = remoteData.updatedAt ? new Date(remoteData.updatedAt).getTime() : 0;
+            const localTime = AppState.updatedAt ? new Date(AppState.updatedAt).getTime() : 0;
+
+            if (remoteTime > localTime || !AppState.updatedAt) {
+              console.log("Adopting latest cloud state from Firestore.");
+              applyIncomingState(remoteData, false);
+              DB.saveLocalOnly(remoteData);
+            } else if (localTime > remoteTime) {
+              console.log("Uploading newer local state to Firestore.");
+              await docRef.set(DB.buildPayload(), { merge: true });
+            }
+          } else {
+            console.log("Initializing first-time cloud state.");
+            await docRef.set(DB.buildPayload(), { merge: true });
+          }
+        } catch (syncErr) {
+          console.warn("Cloud document fetch note:", syncErr.message);
+        }
+
         // Setup Real-Time Cloud Listener
         DB.listenToRemoteChanges();
       } else {
@@ -79,6 +104,37 @@ const DB = {
     }
   },
 
+  buildPayload: function() {
+    return {
+      virtualCash: AppState.virtualCash,
+      riskPct: AppState.riskPct,
+      tradingMode: AppState.tradingMode,
+      marketCondition: AppState.marketCondition,
+      theme: AppState.theme,
+      openPositions: AppState.openPositions,
+      tradeJournal: AppState.tradeJournal,
+      pin: AppState.pin,
+      telegramToken: AppState.telegramToken,
+      telegramChatId: AppState.telegramChatId,
+      updatedAt: AppState.updatedAt || new Date().toISOString()
+    };
+  },
+
+  saveLocalOnly: async function(payload) {
+    try {
+      localStorage.setItem('market_nirav_state', JSON.stringify(payload));
+    } catch (e) {}
+
+    try {
+      const db = await DB.initIndexedDB();
+      if (db) {
+        const tx = db.transaction(DB.STORE_NAME, 'readwrite');
+        const store = tx.objectStore(DB.STORE_NAME);
+        store.put(payload, DB.DATA_KEY);
+      }
+    } catch (e) {}
+  },
+
   listenToRemoteChanges: function() {
     if (!DB.firestore) return;
     try {
@@ -86,9 +142,10 @@ const DB = {
         .onSnapshot((doc) => {
           if (doc.exists) {
             const remoteData = doc.data();
-            console.log("Remote cloud update received from Firestore.");
-            if (remoteData && remoteData.virtualCash !== undefined) {
+            if (remoteData && remoteData.updatedAt && remoteData.updatedAt !== AppState.updatedAt) {
+              console.log("Remote cloud update received from another device/browser.");
               applyIncomingState(remoteData, false);
+              DB.saveLocalOnly(remoteData);
             }
           }
         }, (err) => {
@@ -100,19 +157,8 @@ const DB = {
   },
 
   saveState: async function() {
-    const payload = {
-      virtualCash: AppState.virtualCash,
-      riskPct: AppState.riskPct,
-      tradingMode: AppState.tradingMode,
-      marketCondition: AppState.marketCondition,
-      theme: AppState.theme,
-      openPositions: AppState.openPositions,
-      tradeJournal: AppState.tradeJournal,
-      pin: AppState.pin,
-      telegramToken: AppState.telegramToken,
-      telegramChatId: AppState.telegramChatId,
-      updatedAt: new Date().toISOString()
-    };
+    AppState.updatedAt = new Date().toISOString();
+    const payload = DB.buildPayload();
 
     // 1. Fast LocalStorage Sync
     try {
@@ -198,10 +244,19 @@ function applyIncomingState(data, triggerSave = false) {
   if (data.openPositions) AppState.openPositions = data.openPositions;
   if (data.tradeJournal) AppState.tradeJournal = data.tradeJournal;
   if (data.pin) AppState.pin = data.pin;
-  if (data.telegramToken) AppState.telegramToken = data.telegramToken;
-  if (data.telegramChatId) AppState.telegramChatId = data.telegramChatId;
+  if (data.telegramToken !== undefined) AppState.telegramToken = data.telegramToken;
+  if (data.telegramChatId !== undefined) AppState.telegramChatId = data.telegramChatId;
+  if (data.updatedAt) AppState.updatedAt = data.updatedAt;
 
   if (triggerSave) DB.saveState();
+
+  // Refresh active view so any newly synced trade or balance displays immediately
+  if (document.readyState === 'complete') {
+    if (AppState.currentView === 'home' && typeof renderHomeView === 'function') renderHomeView();
+    if (AppState.currentView === 'scanner' && typeof renderScannerView === 'function') renderScannerView();
+    if (AppState.currentView === 'portfolio' && typeof renderPortfolioView === 'function') renderPortfolioView();
+    if (AppState.currentView === 'settings' && typeof renderSettingsView === 'function') renderSettingsView();
+  }
 }
 
 // ==========================================================================
@@ -621,25 +676,41 @@ function setMarketCondition(condition) {
   const regimeText = document.getElementById('regime-text-status');
   const badgePill = document.getElementById('regime-badge-pill');
   const meter = document.getElementById('market-safety-meter');
+  const regimeDesc = document.getElementById('regime-desc-text');
 
   if (condition === 'good' || condition === 'auto') {
-    regimeText.textContent = "Good Market (Safe to Buy)";
-    badgePill.className = "meter-badge";
-    badgePill.style.background = "var(--profit)";
-    badgePill.textContent = "Safe to Buy";
-    meter.className = "safety-meter";
+    if (regimeText) regimeText.textContent = "Good Market";
+    if (badgePill) {
+      badgePill.className = "meter-badge";
+      badgePill.style.background = "var(--profit)";
+      badgePill.innerHTML = '<span class="pulse-dot"></span> Safe to Buy';
+    }
+    if (meter) meter.className = "safety-meter";
+    if (regimeDesc) {
+      regimeDesc.innerHTML = '🤖 <strong>Auto-Pilot Sensor:</strong> Nifty 50 is in a strong uptrend. All suggested stock buy setups are safe to execute today. No manual research needed.';
+    }
   } else if (condition === 'bad') {
-    regimeText.textContent = "Falling Market (Defensive Safe Haven Mode)";
-    badgePill.className = "meter-badge";
-    badgePill.style.background = "var(--loss)";
-    badgePill.textContent = "Defensive Mode";
-    meter.className = "safety-meter cautious";
+    if (regimeText) regimeText.textContent = "Falling Market";
+    if (badgePill) {
+      badgePill.className = "meter-badge";
+      badgePill.style.background = "var(--loss)";
+      badgePill.innerHTML = '<span class="pulse-dot" style="background:#fff"></span> Defensive Mode';
+    }
+    if (meter) meter.className = "safety-meter cautious";
+    if (regimeDesc) {
+      regimeDesc.innerHTML = '⚠️ <strong>Auto-Pilot Sensor:</strong> Nifty 50 broke below 200 EMA. Switched to Defensive Safe Haven mode. Only capital-protection companies shown.';
+    }
   } else {
-    regimeText.textContent = "Sideways Market (Careful Trading)";
-    badgePill.className = "meter-badge";
-    badgePill.style.background = "#818cf8";
-    badgePill.textContent = "Range Bound";
-    meter.className = "safety-meter cautious";
+    if (regimeText) regimeText.textContent = "Sideways Market";
+    if (badgePill) {
+      badgePill.className = "meter-badge";
+      badgePill.style.background = "#818cf8";
+      badgePill.innerHTML = '<span class="pulse-dot" style="background:#fff"></span> Range Bound';
+    }
+    if (meter) meter.className = "safety-meter cautious";
+    if (regimeDesc) {
+      regimeDesc.innerHTML = '⚡ <strong>Auto-Pilot Sensor:</strong> Market is range-bound. Take quick 1-day flips and adhere strictly to profit targets.';
+    }
   }
 
   DB.saveState();
@@ -763,12 +834,12 @@ function renderHomeView() {
         </div>
 
         <!-- Action Button -->
-        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-          <button class="btn btn-primary" onclick="openPaperBuyModal('${todaySetup.symbol}')" style="flex: 2; height: 48px; font-size: 0.95rem;">
+        <div class="hero-actions-row">
+          <button class="btn btn-primary" onclick="openPaperBuyModal('${todaySetup.symbol}')" style="height: 48px; font-size: 0.95rem;">
             ⚡ Test Buy with Practice Money
           </button>
-          <button class="btn btn-outline" onclick="openDetailView('${todaySetup.symbol}')" style="flex: 1; height: 48px;">
-            View Past Record &amp; Chart
+          <button class="btn btn-outline" onclick="openDetailView('${todaySetup.symbol}')" style="height: 44px;">
+            📊 View Past Record &amp; Chart
           </button>
         </div>
       </div>
