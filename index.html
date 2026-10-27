@@ -182,16 +182,35 @@
          ======================================================== -->
     <section id="view-scanner" class="view-section">
       <div class="section-header">
-        <h2 class="section-title">Nifty 50 High-Probability Scanner</h2>
-        <span style="font-size: 0.8rem; color: var(--text-muted);">Minimum 70% 10-Yr Win Rate Filter</span>
+        <div>
+          <h2 class="section-title">NSE Stock Scanner &amp; Watchlist</h2>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Largecaps, High-Growth Midcaps &amp; Nifty Next 50 (70%+ Win Rate)</span>
+        </div>
+        <span class="badge badge-buy" id="scanner-stock-count-badge">16 Monitored</span>
+      </div>
+
+      <!-- Search Any Stock Input Box -->
+      <div class="stock-search-card" style="margin-bottom: 0.85rem;">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" class="stock-search-input" id="stock-search-input" placeholder="Search any stock (e.g. TRENT, ZOMATO, TATA POWER, HAL)..." autocomplete="off">
+          <button type="button" class="btn-clear-search" id="btn-clear-search" style="display: none;" title="Clear search">&times;</button>
+        </div>
+        <div id="custom-stock-action-box" style="display: none; margin-top: 8px;">
+          <!-- Dynamically inserted when search query is typed -->
+        </div>
       </div>
 
       <!-- Filter Chips -->
       <div class="filter-bar">
-        <button class="filter-chip active" data-filter="all">All Liquid Stocks (50)</button>
-        <button class="filter-chip" data-filter="setups">⭐ Active Buy Setups Only</button>
+        <button class="filter-chip active" data-filter="all">All Stocks</button>
+        <button class="filter-chip" data-filter="setups">⭐ Active Buy Setups</button>
+        <button class="filter-chip" data-filter="midcaps">🚀 High-Growth Midcaps</button>
+        <button class="filter-chip" data-filter="nifty50">🏢 Nifty 50 Bluechips</button>
         <button class="filter-chip" data-filter="holding">In Paper Portfolio</button>
-        <button class="filter-chip" data-filter="notrade">No Trade (Waiting)</button>
       </div>
 
       <!-- Scanner Table -->

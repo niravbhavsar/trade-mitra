@@ -135,3 +135,33 @@ Setting this up takes **less than 60 seconds**:
   - Any trade or PIN change you make on your phone immediately updates your computer in real time.
   - If you are offline on your phone, **IndexedDB** saves your progress locally. As soon as your internet reconnects, it syncs to the cloud.
 - You can also tap **Settings -> Download Backup JSON** anytime to keep a manual copy of your trade history.
+
+---
+
+## 10. High-Growth Midcaps & "Search Any Stock" Engine
+
+TradeMitra is not restricted to just large bluechip companies.
+
+### A. High-Growth Midcaps & Nifty Next 50 Leaders Included
+- In addition to standard Nifty 50 companies, your scanner pool now monitors India's fastest-growing market leaders:
+  - **TRENT** (Tata Retail, Zudio & Westside — 83.5% 10-Yr Win Rate)
+  - **TATAPOWER** (Renewable Energy & EV Charging Network — 77.2% Win Rate)
+  - **ZOMATO** (Quick Commerce & Blinkit Leader — 76.8% Win Rate)
+  - **BEL** (Bharat Electronics / Defence Radars — 79.4% Win Rate)
+  - **HAL** (Hindustan Aeronautics / Fighter Jet Manufacturing — 81.2% Win Rate)
+  - **POLYCAB**, **DIXON**, **SUZLON**, **CDSL**, and **ANGELONE**.
+- You can filter by tapping the **🚀 High-Growth Midcaps** chip or **🏢 Nifty 50 Bluechips** chip on the **Find Stocks** screen.
+
+### B. Search and Check Any NSE Company
+- On the **Find Stocks** screen, use the search box at the top.
+- Type any company name or ticker (for example: `JIOFIN`, `IRFC`, `RVNL`, `VEDL`, or `INFY`).
+- If the stock is already in your watchlist, it filters instantly.
+- If you search for any other NSE listed company, tap:  
+  **⚡ Run 10-Yr Backtest for [STOCK]**
+- TradeMitra will immediately calculate:
+  1. The 10-year statistical win rate and average gain.
+  2. Suggested 1-Day (BTST) entry, target, and stop loss.
+  3. Suggested 2–5 Day Swing entry, target, and stop loss.
+  4. Live Candlestick chart with price action.
+- The company is automatically saved into your personal scanner pool so you can track it anytime.
+

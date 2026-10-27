@@ -11,9 +11,13 @@ from strategy_rules import calculate_technical_indicators, evaluate_swing_signal
 from backtest_10yr import run_10yr_backtest
 
 NIFTY_WATCHLIST = [
+    # Top Nifty 50 Bluechips
     "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS",
     "BHARTIARTL.NS", "ITC.NS", "LT.NS", "SBIN.NS", "HINDUNILVR.NS",
-    "AXISBANK.NS", "TATAMOTORS.NS", "KOTAKBANK.NS", "MARUTI.NS", "TITAN.NS"
+    "AXISBANK.NS", "TATAMOTORS.NS", "KOTAKBANK.NS", "MARUTI.NS", "TITAN.NS",
+    # Top High-Growth Midcaps & Nifty Next 50 Leaders
+    "TATAPOWER.NS", "TRENT.NS", "ZOMATO.NS", "BEL.NS", "HAL.NS",
+    "POLYCAB.NS", "DIXON.NS", "SUZLON.NS", "CDSL.NS", "ANGELONE.NS"
 ]
 
 def send_telegram_alert(token: str, chat_id: str, message: str):
