@@ -36,7 +36,7 @@ function renderPage(routeId) {
 
   if (routeId === 'dashboard') {
     return `
-      <section class="space-y-6">
+      <section class="space-y-6 dashboard-layout">
         <div class="flex items-center justify-between gap-4">
           <div>
             <p class="text-xs uppercase tracking-[0.3em] text-primary">Market research</p>
@@ -299,7 +299,7 @@ function renderApp() {
   const entry = document.querySelector('#app');
 
   entry.innerHTML = `
-    <div class="drawer lg:drawer-open">
+    <div class="drawer lg:drawer-open app-shell">
       <input id="app-drawer" type="checkbox" class="drawer-toggle" />
       <div class="drawer-content flex min-h-screen flex-col bg-base-200/60">
         <header class="navbar border-b border-base-300 bg-base-100/90 backdrop-blur">
@@ -316,7 +316,9 @@ function renderApp() {
           </div>
         </header>
 
-        <main class="flex-1 p-4 md:p-6 lg:p-8">
+        <div class="dashboard-hero" aria-hidden="true"></div>
+
+        <main class="flex-1 px-4 py-4 md:px-6 lg:px-8">
           <div class="mx-auto max-w-7xl">
             ${renderPage(currentRoute.id)}
           </div>
@@ -325,10 +327,10 @@ function renderApp() {
 
       <div class="drawer-side z-20">
         <label for="app-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-        <aside class="w-72 bg-base-100 p-4">
+        <aside class="w-72 bg-base-100 p-4 market-sidebar">
           <div class="mb-6 px-2 pt-3">
             <h2 class="text-lg font-bold">Research Console</h2>
-            <p class="text-sm text-base-content/70">Personal research & paper trading</p>
+            <p class="text-sm text-base-content/70">Personal research &amp; paper trading</p>
           </div>
           <ul class="menu menu-lg gap-1">
             ${routes
