@@ -105,6 +105,7 @@ const DB = {
       riskPct: AppState.riskPct,
       tradingMode: AppState.tradingMode,
       marketCondition: AppState.marketCondition,
+      theme: AppState.theme,
       openPositions: AppState.openPositions,
       tradeJournal: AppState.tradeJournal,
       pin: AppState.pin,
@@ -190,6 +191,10 @@ function applyIncomingState(data, triggerSave = false) {
   if (data.riskPct !== undefined) AppState.riskPct = data.riskPct;
   if (data.tradingMode) AppState.tradingMode = data.tradingMode;
   if (data.marketCondition) AppState.marketCondition = data.marketCondition;
+  if (data.theme) {
+    AppState.theme = data.theme;
+    if (typeof setThemeMode === 'function') setThemeMode(data.theme, false);
+  }
   if (data.openPositions) AppState.openPositions = data.openPositions;
   if (data.tradeJournal) AppState.tradeJournal = data.tradeJournal;
   if (data.pin) AppState.pin = data.pin;
@@ -524,14 +529,16 @@ const AppState = {
   currentView: 'home',
   selectedStockSymbol: 'ICICIBANK',
   tradingMode: 'swing', // 'swing' (2-5 Days) or '1day' (BTST)
-  marketCondition: 'good', // 'good' (Bullish), 'bad' (Bearish/Defensive), 'choppy'
+  marketCondition: 'auto', // 'auto' (Auto-detected), 'good', 'bad'
+  theme: 'dark', // 'dark' or 'light'
+  monthlyGoal: 15000.00,
   virtualCash: 100000.00,
   riskPct: 1.5,
   openPositions: INITIAL_OPEN_POSITIONS,
   tradeJournal: INITIAL_JOURNAL,
   pin: '5189',
   enteredPin: '',
-  isLocked: false,
+  isLocked: true, // MANDATORY LOCK ON STARTUP
   autoLockMinutes: 5,
   telegramToken: '',
   telegramChatId: '',
@@ -541,6 +548,65 @@ const AppState = {
 // ==========================================================================
 // 3. Navigation & Mode Controllers
 // ==========================================================================
+function setThemeMode(theme, save = true) {
+  AppState.theme = theme;
+  const icon = document.getElementById('theme-btn-icon');
+  if (theme === 'light') {
+    document.body.classList.add('light-theme');
+    if (icon) icon.textContent = '🌙';
+  } else {
+    document.body.classList.remove('light-theme');
+    if (icon) icon.textContent = '☀️';
+  }
+  const selector = document.getElementById('setting-theme-selector');
+  if (selector) selector.value = theme;
+  if (save) DB.saveState();
+}
+
+function toggleTheme() {
+  const next = AppState.theme === 'light' ? 'dark' : 'light';
+  setThemeMode(next, true);
+}
+
+function togglePinVisibility() {
+  const pinInput = document.getElementById('setting-pin');
+  const svg = document.getElementById('eye-icon-svg');
+  if (pinInput.type === 'password') {
+    pinInput.type = 'text';
+    svg.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+  } else {
+    pinInput.type = 'password';
+    svg.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+  }
+}
+
+function saveMasterPin() {
+  const newPin = document.getElementById('setting-pin').value.trim();
+  if (!newPin || newPin.length !== 4 || isNaN(newPin)) {
+    alert("Please enter a valid 4-digit numeric PIN.");
+    return;
+  }
+  AppState.pin = newPin;
+  DB.saveState();
+  alert(`✅ Master PIN successfully updated to ${newPin}! You will use this PIN to log in.`);
+}
+
+function toggleManualMoodPanel() {
+  const panel = document.getElementById('manual-mood-panel');
+  if (panel) {
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  }
+}
+
+function shareProfitOnWhatsApp() {
+  const totalProfit = AppState.tradeJournal.reduce((acc, j) => acc + j.pnlRupees, 0);
+  const wins = AppState.tradeJournal.filter(j => j.pnlRupees > 0).length;
+  const rate = AppState.tradeJournal.length > 0 ? ((wins / AppState.tradeJournal.length) * 100).toFixed(1) : 0;
+  const text = `📈 *TradeMitra Profit Diary Update*\n\n💰 Total Pocketed Profit: *+₹${totalProfit.toLocaleString('en-IN')}*\n🎯 Win Rate: *${rate}%* (${wins} Wins / ${AppState.tradeJournal.length} Trades)\n⏱ Practice Period: Day 24 of 90\n💡 Everyday Impact: Covers ~10 days of household expenses!\n\nOpen TradeMitra: https://trademitra.netlify.app`;
+  const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
+}
+
 function setTradingMode(mode) {
   AppState.tradingMode = mode;
   document.getElementById('btn-mode-1day').classList.toggle('active', mode === '1day');
@@ -556,19 +622,22 @@ function setMarketCondition(condition) {
   const badgePill = document.getElementById('regime-badge-pill');
   const meter = document.getElementById('market-safety-meter');
 
-  if (condition === 'good') {
-    regimeText.textContent = "Good / Bullish Market (Nifty Uptrend)";
-    badgePill.className = "regime-badge good";
-    badgePill.textContent = "Bullish Regime";
+  if (condition === 'good' || condition === 'auto') {
+    regimeText.textContent = "Good Market (Safe to Buy)";
+    badgePill.className = "meter-badge";
+    badgePill.style.background = "var(--profit)";
+    badgePill.textContent = "Safe to Buy";
     meter.className = "safety-meter";
   } else if (condition === 'bad') {
-    regimeText.textContent = "Bad / Bearish Market (Defensive Haven Mode Active)";
-    badgePill.className = "regime-badge bad";
+    regimeText.textContent = "Falling Market (Defensive Safe Haven Mode)";
+    badgePill.className = "meter-badge";
+    badgePill.style.background = "var(--loss)";
     badgePill.textContent = "Defensive Mode";
     meter.className = "safety-meter cautious";
   } else {
-    regimeText.textContent = "Choppy / Sideways Range (Channel Bounce Only)";
-    badgePill.className = "regime-badge defensive";
+    regimeText.textContent = "Sideways Market (Careful Trading)";
+    badgePill.className = "meter-badge";
+    badgePill.style.background = "#818cf8";
     badgePill.textContent = "Range Bound";
     meter.className = "safety-meter cautious";
   }
@@ -1042,6 +1111,17 @@ function renderPortfolioView() {
   const profitFactor = totalLosses > 0 ? (totalGains / totalLosses).toFixed(2) : "Infinite";
   document.getElementById('journal-profit-factor').textContent = profitFactor;
 
+  // Update Monthly Goal Thermometer
+  const monthlyGoal = AppState.monthlyGoal || 15000;
+  const goalPct = Math.min(100, Math.max(0, (totalNetProfit / monthlyGoal) * 100)).toFixed(1);
+  const fillEl = document.getElementById('goal-meter-fill');
+  const goalProgressEl = document.getElementById('goal-progress-text');
+  if (fillEl) fillEl.style.width = `${goalPct}%`;
+  if (goalProgressEl) {
+    goalProgressEl.textContent = `${totalNetProfit >= 0 ? '+' : ''}₹${totalNetProfit.toLocaleString('en-IN')} Pocketed (${goalPct}%)`;
+    goalProgressEl.style.color = totalNetProfit >= 0 ? 'var(--profit)' : 'var(--loss)';
+  }
+
   tbody.innerHTML = journal.map(trade => {
     const isProfit = trade.pnlRupees >= 0;
     const modeBadge = trade.mode === '1day' ? '⚡ 1D' : '📈 2–5D';
@@ -1075,6 +1155,8 @@ function renderSettingsView() {
   document.getElementById('setting-tg-chatid').value = AppState.telegramChatId || '';
   document.getElementById('setting-firebase-project').value = DB.firebaseConfig.projectId;
   document.getElementById('setting-firebase-key').value = DB.firebaseConfig.apiKey;
+  const themeSel = document.getElementById('setting-theme-selector');
+  if (themeSel) themeSel.value = AppState.theme;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1329,13 +1411,112 @@ function initSecurityLock() {
 
   const biometricBtn = document.getElementById('btn-biometric-unlock');
   if (biometricBtn) {
-    biometricBtn.addEventListener('click', () => unlockApp());
+    biometricBtn.addEventListener('click', () => triggerBiometricUnlock());
   }
+
+  // Support typing PIN via physical keyboard (Desktop or USB/Bluetooth Keyboard)
+  window.addEventListener('keydown', (e) => {
+    if (!AppState.isLocked) return;
+    if (e.key >= '0' && e.key <= '9') {
+      if (AppState.enteredPin.length < 4) {
+        AppState.enteredPin += e.key;
+        updatePinDots();
+        if (AppState.enteredPin.length === 4) setTimeout(verifyPin, 100);
+      }
+    } else if (e.key === 'Backspace') {
+      AppState.enteredPin = AppState.enteredPin.slice(0, -1);
+      updatePinDots();
+    }
+  });
 
   ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(evt => {
     window.addEventListener(evt, resetInactivityTimer, true);
   });
   resetInactivityTimer();
+}
+
+async function triggerBiometricUnlock() {
+  if (window.PublicKeyCredential && navigator.credentials) {
+    try {
+      const isAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      if (!isAvailable) {
+        if (window.location.protocol === 'file:') {
+          const confirmUnlock = confirm("Biometric hardware sensor (Fingerprint/Face ID) requires HTTPS in production. Simulate device biometric unlock now?");
+          if (confirmUnlock) unlockApp();
+          return;
+        }
+        alert("Phone biometric or screen lock is not configured on this device. Please use Master PIN (5189).");
+        return;
+      }
+
+      const challenge = new Uint8Array(32);
+      window.crypto.getRandomValues(challenge);
+
+      const hasRegistered = localStorage.getItem('tm_biometric_registered');
+      if (hasRegistered) {
+        const credential = await navigator.credentials.get({
+          publicKey: {
+            challenge: challenge,
+            timeout: 60000,
+            userVerification: 'preferred'
+          }
+        });
+        if (credential) {
+          unlockApp();
+          return;
+        }
+      } else {
+        const newCredential = await navigator.credentials.create({
+          publicKey: {
+            challenge: challenge,
+            rp: { name: 'TradeMitra App' },
+            user: {
+              id: Uint8Array.from('trademitra_trader', c => c.charCodeAt(0)),
+              name: 'Nirav',
+              displayName: 'TradeMitra Trader'
+            },
+            pubKeyCredParams: [
+              { alg: -7, type: 'public-key' },
+              { alg: -257, type: 'public-key' }
+            ],
+            authenticatorSelection: {
+              authenticatorAttachment: 'platform',
+              userVerification: 'preferred'
+            },
+            timeout: 60000
+          }
+        });
+        if (newCredential) {
+          localStorage.setItem('tm_biometric_registered', 'true');
+          unlockApp();
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn("Biometric verification note:", err);
+      if (window.location.protocol === 'file:') {
+        const confirmUnlock = confirm("Biometric sensor requires an HTTPS or localhost origin. Would you like to simulate verified device unlock?");
+        if (confirmUnlock) {
+          unlockApp();
+          return;
+        }
+      } else if (err.name === 'NotAllowedError') {
+        alert("Biometric verification was cancelled. Please enter your 4-digit PIN.");
+      } else {
+        alert(`Biometric prompt: ${err.message}. Please enter PIN 5189.`);
+      }
+    }
+  } else {
+    if (window.location.protocol === 'file:') {
+      const confirmUnlock = confirm("Biometric verification (TouchID / FaceID) is simulated for offline testing. Unlock TradeMitra now?");
+      if (confirmUnlock) {
+        unlockApp();
+        return;
+      }
+    } else {
+      alert("Biometric sensor is not supported on this browser. Please enter your 4-digit PIN (Default: 5189).");
+    }
+  }
 }
 
 function lockApp() {
@@ -1387,12 +1568,18 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Load State from Database
   await DB.loadState();
 
+  // Apply Theme Mode (saved theme or dark default)
+  setThemeMode(AppState.theme || 'dark', false);
+
   // Initialize Firebase Cloud Firestore
   DB.initFirebase();
 
   // Navigation & Security
   initNavigation();
   initSecurityLock();
+
+  // Mandatory App Lock on Startup
+  lockApp();
 
   // Register PWA Service Worker
   if ('serviceWorker' in navigator) {
@@ -1412,6 +1599,18 @@ function initNavigation() {
       switchView(view);
     });
   });
+
+  // Header Theme Button
+  const headerThemeBtn = document.getElementById('header-theme-btn');
+  if (headerThemeBtn) {
+    headerThemeBtn.addEventListener('click', () => toggleTheme());
+  }
+
+  // Header Telegram Button
+  const headerTgBtn = document.getElementById('header-telegram-btn');
+  if (headerTgBtn) {
+    headerTgBtn.addEventListener('click', () => switchView('settings'));
+  }
 
   window.addEventListener('hashchange', () => {
     const hash = window.location.hash.replace('#', '') || 'home';
