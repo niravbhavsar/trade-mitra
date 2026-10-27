@@ -23,11 +23,76 @@ const routeMap = {
 
 function renderDashboardCard(card) {
   return `
-    <div class="stat bg-base-100 rounded-box shadow-soft border border-base-200">
-      <div class="stat-title text-xs uppercase tracking-[0.25em] text-base-content/60">${card.label}</div>
-      <div class="stat-value text-2xl md:text-3xl">${card.value}</div>
-      <div class="stat-desc text-success">${card.trend}</div>
+    <div class="stat-card">
+      <div class="stat-label">${card.label}</div>
+      <div class="stat-value">${card.value}</div>
+      <div class="stat-trend">${card.trend}</div>
     </div>
+  `;
+}
+
+function renderDashboardSidebar(data) {
+  return `
+    <aside class="dashboard-sidebar">
+      <div class="sidebar-block">
+        <p class="eyebrow">Market research</p>
+        <h1 class="page-title">Dashboard</h1>
+      </div>
+
+      <div class="stat-list">
+        <div class="stat-row">
+          <span class="meta-label">Paper cash</span>
+          <div class="meta-value">₹1,00,000</div>
+          <div class="meta-trend">+0.0%</div>
+        </div>
+        <div class="stat-row">
+          <span class="meta-label">Portfolio value</span>
+          <div class="meta-value">₹1,08,450</div>
+          <div class="meta-trend">+4.1%</div>
+        </div>
+        <div class="stat-row">
+          <span class="meta-label">Open positions</span>
+          <div class="meta-value">3</div>
+          <div class="meta-trend">2 active</div>
+        </div>
+        <div class="stat-row">
+          <span class="meta-label">Today signals</span>
+          <div class="meta-value">NO TRADE</div>
+          <div class="meta-trend">Data stale</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Latest research snapshot</h3>
+        <p>${data.summary}</p>
+        <div class="summary-list">
+          <div class="summary-row"><span>Research run</span><strong>Daily swing scan</strong></div>
+          <div class="summary-row"><span>Last refresh</span><strong>18:30 IST</strong></div>
+          <div class="summary-row"><span>Data quality</span><strong class="warn">Needs review</strong></div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Important notes</h3>
+        <ul>
+          ${data.alerts.map((alert) => `<li>${alert}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="sidebar-section console-section">
+        <h3>Research Console</h3>
+        <p class="console-subtitle">Personal research &amp; paper trading</p>
+        <nav class="console-nav">
+          ${routes
+            .map(
+              (route) => `
+                <a href="#${route.id}" class="console-link ${route.id === 'dashboard' ? 'active' : ''}">${route.label}</a>
+              `,
+            )
+            .join('')}
+        </nav>
+      </div>
+    </aside>
   `;
 }
 
@@ -36,50 +101,13 @@ function renderPage(routeId) {
 
   if (routeId === 'dashboard') {
     return `
-      <section class="space-y-6 dashboard-layout">
-        <div class="flex items-center justify-between gap-4">
-          <div>
-            <p class="text-xs uppercase tracking-[0.3em] text-primary">Market research</p>
-            <h1 class="text-3xl font-bold">${data.title}</h1>
-          </div>
-          <div class="badge badge-warning gap-2">
-            <span class="h-2 w-2 rounded-full bg-warning-content"></span>
-            Paper-trading mode
-          </div>
-        </div>
-
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          ${data.cards.map(renderDashboardCard).join('')}
-        </div>
-
-        <div class="grid gap-6 lg:grid-cols-[1.4fr_0.6fr]">
-          <div class="card bg-base-100 shadow-soft border border-base-200">
-            <div class="card-body">
-              <h2 class="card-title">Latest research snapshot</h2>
-              <p class="text-base-content/70">${data.summary}</p>
-              <div class="mt-4 space-y-3">
-                <div class="flex items-center justify-between rounded-xl bg-base-200 px-4 py-3">
-                  <span>Research run</span>
-                  <span class="font-semibold">Daily swing scan</span>
-                </div>
-                <div class="flex items-center justify-between rounded-xl bg-base-200 px-4 py-3">
-                  <span>Last refresh</span>
-                  <span class="font-semibold">18:30 IST</span>
-                </div>
-                <div class="flex items-center justify-between rounded-xl bg-base-200 px-4 py-3">
-                  <span>Data quality</span>
-                  <span class="font-semibold text-warning">Needs review</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card bg-base-100 shadow-soft border border-base-200">
-            <div class="card-body">
-              <h2 class="card-title">Important notes</h2>
-              <ul class="space-y-3 text-sm">
-                ${data.alerts.map((alert) => `<li class="flex gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-primary"></span><span>${alert}</span></li>`).join('')}
-              </ul>
+      <section class="dashboard-layout">
+        <div class="dashboard-panel">
+          <div class="dashboard-hero" aria-hidden="true"></div>
+          <div class="workspace-grid">
+            ${renderDashboardSidebar(data)}
+            <div class="dashboard-main">
+              <div class="empty-space"></div>
             </div>
           </div>
         </div>
@@ -299,56 +327,35 @@ function renderApp() {
   const entry = document.querySelector('#app');
 
   entry.innerHTML = `
-    <div class="drawer lg:drawer-open app-shell">
-      <input id="app-drawer" type="checkbox" class="drawer-toggle" />
-      <div class="drawer-content flex min-h-screen flex-col bg-base-200/60">
-        <header class="navbar border-b border-base-300 bg-base-100/90 backdrop-blur">
-          <div class="flex-none lg:hidden">
-            <label for="app-drawer" class="btn btn-square btn-ghost">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-            </label>
+    <div class="app-shell">
+      <div class="browser-frame">
+        <header class="browser-bar">
+          <div class="browser-actions">
+            <span class="browser-dot"></span>
+            <span class="browser-dot"></span>
+            <span class="browser-dot"></span>
           </div>
-          <div class="flex-1 px-2">
-            <a href="#dashboard" class="text-xl font-bold">Market</a>
+          <div class="browser-address">
+            <span class="address-lock">◌</span>
+            <span>market-nirav.niravbhavsar.workers.dev</span>
           </div>
-          <div class="flex-none">
-            <div class="badge badge-primary badge-lg">Prototype</div>
+          <div class="browser-tools">
+            <span>☆</span>
+            <span>⎇</span>
+            <span>⋮</span>
           </div>
         </header>
 
-        <div class="dashboard-hero" aria-hidden="true"></div>
-
-        <main class="flex-1 px-4 py-4 md:px-6 lg:px-8">
-          <div class="mx-auto max-w-7xl">
+        <div class="app-content">
+          <div class="main-shell">
             ${renderPage(currentRoute.id)}
           </div>
-        </main>
-      </div>
-
-      <div class="drawer-side z-20">
-        <label for="app-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-        <aside class="w-72 bg-base-100 p-4 market-sidebar">
-          <div class="mb-6 px-2 pt-3">
-            <h2 class="text-lg font-bold">Research Console</h2>
-            <p class="text-sm text-base-content/70">Personal research &amp; paper trading</p>
-          </div>
-          <ul class="menu menu-lg gap-1">
-            ${routes
-              .map(
-                (route) => `
-                  <li>
-                    <a href="#${route.id}" class="route-link ${route.id === currentRoute.id ? 'active bg-base-200' : ''}">${route.label}</a>
-                  </li>
-                `,
-              )
-              .join('')}
-          </ul>
-        </aside>
+        </div>
       </div>
     </div>
   `;
 
-  document.querySelectorAll('.route-link').forEach((link) => {
+  document.querySelectorAll('.console-link').forEach((link) => {
     link.addEventListener('click', () => {
       const drawer = document.querySelector('#app-drawer');
       if (drawer && drawer.checked) {
