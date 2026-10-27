@@ -1,21 +1,9 @@
 {
-  "name": "market-paper-trader",
+  "name": "trademitra",
+  "version": "1.0.0",
+  "description": "TradeMitra: Zero-cost Indian stock market research and paper trading application",
   "private": true,
-  "version": "0.1.0",
-  "type": "module",
   "scripts": {
-    "dev": "vite --host",
-    "build": "vite build",
-    "preview": "vite preview --host",
-    "test": "vitest run"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^5.0.0",
-    "autoprefixer": "^10.4.20",
-    "daisyui": "^4.12.22",
-    "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.15",
-    "vite": "^6.0.0",
-    "vitest": "^2.1.8"
+    "start": "npx serve ."
   }
 }

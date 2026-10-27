@@ -1,13 +1,612 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Indian stock market research and paper-trading app placeholder UI" />
-    <title>Market Research & Paper Trading</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#080c14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>TradeMitra — Simple Indian Stock Research & Daily Gain</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="app.css">
+  <!-- TradingView Lightweight Charts Standalone CDN -->
+  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="app-header">
+    <div class="brand-group">
+      <div class="brand-logo" style="background: linear-gradient(135deg, #0ea5e9, #10b981);">TM</div>
+      <div class="brand-info">
+        <h1>TradeMitra <span class="brand-tag">NSE SWING</span></h1>
+        <div class="sync-status" id="cloud-sync-status">
+          <span class="sync-dot"></span> Cloud Synced
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop Navigation Links -->
+    <nav class="header-nav">
+      <a href="#home" class="nav-item active" data-view="home">Today's Plan</a>
+      <a href="#scanner" class="nav-item" data-view="scanner">Find Stocks</a>
+      <a href="#detail" class="nav-item" data-view="detail">Past Record</a>
+      <a href="#portfolio" class="nav-item" data-view="portfolio">Profit Diary</a>
+      <a href="#settings" class="nav-item" data-view="settings">Settings</a>
+    </nav>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button class="header-icon-btn" id="header-lock-btn" title="Lock App Screen">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </button>
+      <button class="header-icon-btn" id="header-telegram-btn" title="Telegram Alerts">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="app-container">
+
+    <!-- ========================================================
+         VIEW 1: SMART ACTION DASHBOARD
+         ======================================================== -->
+    <section id="view-home" class="view-section active">
+
+      <!-- Trading Frequency Mode Switcher (1-Day BTST vs 2-5 Day Swing) -->
+      <div class="mode-switcher-container">
+        <button class="mode-btn mode-btst" id="btn-mode-1day" onclick="setTradingMode('1day')">
+          <span>⚡ Buy Today, Sell Tomorrow</span>
+          <span style="font-size: 0.7rem; opacity: 0.85;">(+1.5% to +2.5% Quick Profit)</span>
+        </button>
+        <button class="mode-btn active" id="btn-mode-swing" onclick="setTradingMode('swing')">
+          <span>📈 Hold for 2 to 4 Days</span>
+          <span style="font-size: 0.7rem; opacity: 0.85;">(+4.5% to +6.5% Bigger Profit)</span>
+        </button>
+      </div>
+
+      <!-- Market Safety Regime Status with Condition Selector -->
+      <div class="safety-meter" id="market-safety-meter">
+        <div class="meter-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span>Market Mood: <strong id="regime-text-status">Good Market (Safe to Buy)</strong></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <select id="market-condition-selector" onchange="setMarketCondition(this.value)" style="background: rgba(8, 12, 20, 0.8); color: var(--text-main); border: var(--glass-border); border-radius: var(--radius-sm); font-size: 0.72rem; padding: 3px 6px; outline: none;">
+            <option value="good" selected>🟢 Good Market (Safe to Buy)</option>
+            <option value="bad">🔴 Falling Market (Safe Companies Only)</option>
+            <option value="choppy">🟡 Sideways Market (Careful Trading)</option>
+          </select>
+          <span class="meter-badge" id="regime-badge-pill">Safe to Buy</span>
+        </div>
+      </div>
+
+      <!-- What Should I Do Today? Hero Action Card -->
+      <div id="hero-action-container">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- Quick Portfolio Summary Stat Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Practice Cash in Hand</div>
+          <div class="stat-value" id="stat-cash">₹1,00,000</div>
+          <div class="stat-trend up">Safe in Wallet</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Account Worth</div>
+          <div class="stat-value" id="stat-equity">₹1,06,420</div>
+          <div class="stat-trend up">+6.42% Total Profit</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Success Rate (Last 30 Days)</div>
+          <div class="stat-value" id="stat-winrate" style="color: var(--profit);">81.8%</div>
+          <div class="stat-trend up">9 Wins out of 11</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Stocks You Are Holding</div>
+          <div class="stat-value" id="stat-open-count">2 Stocks</div>
+          <div class="stat-trend" style="color: var(--primary);">Waiting for Target</div>
+        </div>
+      </div>
+
+      <!-- Active Paper Holdings Section -->
+      <div class="section-header">
+        <h2 class="section-title">Stocks Currently in Your Portfolio</h2>
+        <span style="font-size: 0.8rem; color: var(--text-muted);" id="active-positions-count">2 Active</span>
+      </div>
+      <div id="active-positions-list">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- Quick Scan Status Bar -->
+      <div class="card" style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; margin-top: 1rem;">
+        <div style="font-size: 0.8rem; color: var(--text-muted);">
+          <span>Last automated scan: <strong style="color: var(--text-main);">Today 16:00 IST</strong></span>
+          <span style="margin: 0 6px;">•</span>
+          <span>Coverage: <strong style="color: var(--text-main);">15 Years Historical NSE</strong></span>
+        </div>
+        <button class="btn btn-outline" id="btn-manual-rescan" style="width: auto; padding: 0.4rem 0.85rem; font-size: 0.78rem;">
+          ↻ Re-scan Now
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ========================================================
+         VIEW 2: TOP STOCK SCANNER & WATCHLIST
+         ======================================================== -->
+    <section id="view-scanner" class="view-section">
+      <div class="section-header">
+        <h2 class="section-title">Nifty 50 High-Probability Scanner</h2>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Minimum 70% 10-Yr Win Rate Filter</span>
+      </div>
+
+      <!-- Filter Chips -->
+      <div class="filter-bar">
+        <button class="filter-chip active" data-filter="all">All Liquid Stocks (50)</button>
+        <button class="filter-chip" data-filter="setups">⭐ Active Buy Setups Only</button>
+        <button class="filter-chip" data-filter="holding">In Paper Portfolio</button>
+        <button class="filter-chip" data-filter="notrade">No Trade (Waiting)</button>
+      </div>
+
+      <!-- Scanner Table -->
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <div class="table-responsive">
+          <table class="custom-table" id="scanner-table">
+            <thead>
+              <tr>
+                <th>Stock / Company</th>
+                <th>Price (CMP)</th>
+                <th>24h Chg</th>
+                <th>10-Yr Win Rate</th>
+                <th>Swing Setup</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="scanner-tbody">
+              <!-- Rendered dynamically by app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VIEW 3: STOCK DETAIL & 10-YEAR HISTORICAL PROOF
+         ======================================================== -->
+    <section id="view-detail" class="view-section">
+      <!-- Detail Header -->
+      <div class="card" style="margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <h2 id="detail-symbol" style="font-size: 1.6rem; font-weight: 800;">ICICIBANK</h2>
+              <span class="badge badge-buy" id="detail-setup-badge">BUY SETUP ACTIVE</span>
+            </div>
+            <p id="detail-company" style="font-size: 0.85rem; color: var(--text-muted);">ICICI Bank Limited — NSE Cash</p>
+          </div>
+          <div style="text-align: right;">
+            <div id="detail-price" style="font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--primary);">₹1,264.50</div>
+            <div id="detail-change" style="font-size: 0.82rem; font-weight: 600; color: var(--profit);">+1.35% Today</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Candlestick Chart Card -->
+      <div class="card" style="padding: 0.75rem; margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; padding: 0.25rem 0.5rem;">
+          <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-dim);">Daily Candlestick + Target / Stop Levels</span>
+          <div style="display: flex; gap: 10px; font-size: 0.75rem;">
+            <span style="color: var(--profit);">● Target: <strong id="chart-target-label">₹1,320</strong></span>
+            <span style="color: var(--loss);">● Stop: <strong id="chart-stop-label">₹1,238</strong></span>
+          </div>
+        </div>
+        <div class="chart-card" id="tradingview-chart-box">
+          <canvas id="custom-candlestick-canvas" class="chart-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- 10-15 Year Historical Proof Card -->
+      <div class="proof-card">
+        <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">
+          📊 10–15 Year Historical Backtest Proof
+        </h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+          This pattern was backtested across 15 years of daily NSE data (2011–2026). Only patterns exceeding 70% win rate qualify.
+        </p>
+
+        <div class="trade-specs-grid" style="margin-bottom: 1rem;">
+          <div class="spec-box">
+            <div class="spec-label">Total Tested</div>
+            <div class="spec-value" id="proof-total">142 Trades</div>
+            <div class="spec-sub">15 Year Data</div>
+          </div>
+          <div class="spec-box">
+            <div class="spec-label">Historical Win Rate</div>
+            <div class="spec-value profit" id="proof-winrate">78.4%</div>
+            <div class="spec-sub profit">111 Wins / 31 Losses</div>
+          </div>
+          <div class="spec-box">
+            <div class="spec-label">Avg Gain (Winners)</div>
+            <div class="spec-value profit" id="proof-avggain">+4.65%</div>
+            <div class="spec-sub">Within 3.2 Days</div>
+          </div>
+          <div class="spec-box">
+            <div class="spec-label">Avg Loss (Losers)</div>
+            <div class="spec-value loss" id="proof-avgloss">-1.85%</div>
+            <div class="spec-sub">Strict Stop Hit</div>
+          </div>
+        </div>
+
+        <!-- Plain Language Checklist -->
+        <div style="background: rgba(8, 12, 20, 0.6); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.05);">
+          <h4 style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.5rem;">Why this stock is suggested today:</h4>
+          <div class="checklist-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span><strong>Long-Term Bullish Trend:</strong> Stock is trading well above its 200 EMA and 50 EMA on the daily timeframe.</span>
+          </div>
+          <div class="checklist-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span><strong>Healthy 2-Day Pullback:</strong> Price touched 20 EMA dynamic support with RSI cooled off to 44 (perfect discount zone).</span>
+          </div>
+          <div class="checklist-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span><strong>Institutional Buying Volume:</strong> Confirmed bullish hammer candle with 1.4× the 20-day average volume.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action: Paper Buy -->
+      <button class="btn btn-primary" id="btn-detail-paper-buy" style="height: 50px; font-size: 1rem;">
+        ⚡ Execute ₹1,00,000 Paper Buy for this Setup
+      </button>
+
+    </section>
+
+    <!-- ========================================================
+         VIEW 4: PAPER PORTFOLIO & 2-3 MONTH TRIAL JOURNAL
+         ======================================================== -->
+    <section id="view-portfolio" class="view-section">
+      <!-- 2-3 Month Trial Scorecard -->
+      <div class="card" style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(16, 185, 129, 0.08)), var(--bg-surface); border: 1px solid rgba(14, 165, 233, 0.3);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+          <h2 style="font-size: 1.1rem; font-weight: 700;">2–3 Month Dummy Evaluation Tracker</h2>
+          <span class="badge badge-buy">Phase: Day 24 of 90</span>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Test this strategy with zero risk using virtual money for 2–3 months. Review the win rate below before putting real capital at risk.
+        </p>
+        <div class="stats-grid" style="margin-bottom: 0;">
+          <div class="stat-card" style="background: rgba(8, 12, 20, 0.6);">
+            <div class="stat-label">Paper Trades Taken</div>
+            <div class="stat-value" id="journal-trade-count">11 Trades</div>
+            <div class="stat-trend up">Goal: 25+ Trades</div>
+          </div>
+          <div class="stat-card" style="background: rgba(8, 12, 20, 0.6);">
+            <div class="stat-label">Observed Win Rate</div>
+            <div class="stat-value profit" id="journal-win-rate">81.8%</div>
+            <div class="stat-trend up">Target: &gt;70%</div>
+          </div>
+          <div class="stat-card" style="background: rgba(8, 12, 20, 0.6);">
+            <div class="stat-label">Net Virtual Profit</div>
+            <div class="stat-value profit" id="journal-net-profit">+₹6,420</div>
+            <div class="stat-trend up">+6.42% ROI</div>
+          </div>
+          <div class="stat-card" style="background: rgba(8, 12, 20, 0.6);">
+            <div class="stat-label">Profit Factor</div>
+            <div class="stat-value" id="journal-profit-factor">3.45</div>
+            <div class="stat-trend up">High Quality</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trade Journal Log -->
+      <div class="section-header" style="margin-top: 1.25rem;">
+        <h3 class="section-title">Trade History & Audit Journal</h3>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-outline" id="btn-export-csv" style="width: auto; padding: 0.4rem 0.85rem; font-size: 0.78rem;">
+            📥 Export CSV
+          </button>
+          <button class="btn btn-outline" id="btn-reset-portfolio" style="width: auto; padding: 0.4rem 0.85rem; font-size: 0.78rem; color: var(--loss);">
+            ↺ Reset
+          </button>
+        </div>
+      </div>
+
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <div class="table-responsive">
+          <table class="custom-table" id="journal-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Stock</th>
+                <th>Holding</th>
+                <th>Entry Price</th>
+                <th>Exit Price</th>
+                <th>Net P&L (₹)</th>
+                <th>Exit Reason</th>
+              </tr>
+            </thead>
+            <tbody id="journal-tbody">
+              <!-- Rendered dynamically by app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VIEW 5: SETTINGS, TELEGRAM & SECURITY
+         ======================================================== -->
+    <section id="view-settings" class="view-section">
+      <div class="section-header">
+        <h2 class="section-title">Settings & System Preferences</h2>
+      </div>
+
+      <!-- Virtual Capital & Risk Setup -->
+      <div class="card">
+        <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">💰 Paper Capital & Risk Budget</h3>
+        <div class="form-group">
+          <label class="form-label">Starting Virtual Capital (₹)</label>
+          <input type="number" class="form-control" id="setting-starting-cash" value="100000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Risk Per Trade (%) — Maximum Capital at Risk on Stop Loss</label>
+          <select class="form-control" id="setting-risk-pct">
+            <option value="1.0">1.0% (Conservative — ₹1,000 risk)</option>
+            <option value="1.5" selected>1.5% (Recommended — ₹1,500 risk)</option>
+            <option value="2.0">2.0% (Standard — ₹2,000 risk)</option>
+            <option value="3.0">3.0% (Aggressive — ₹3,000 risk)</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="btn-save-settings">Save Capital Preferences</button>
+      </div>
+
+      <!-- Telegram Bot Alerts -->
+      <div class="card">
+        <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem;">📱 Telegram Trade Alerts (100% Free)</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Receive instant alerts when a 70%+ win rate setup is found at market close or when an open trade reaches its exit target.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Telegram Bot Token</label>
+          <input type="text" class="form-control" id="setting-tg-token" placeholder="e.g. 7123456789:ABCdefGhIjkLmNoPqRsT...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Telegram Chat ID</label>
+          <input type="text" class="form-control" id="setting-tg-chatid" placeholder="e.g. 987654321">
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="btn btn-primary" id="btn-save-telegram" style="flex: 1;">Save Telegram Config</button>
+          <button class="btn btn-outline" id="btn-test-telegram" style="flex: 1;">Send Test Alert</button>
+        </div>
+      </div>
+
+      <!-- Security & Screen Lock -->
+      <div class="card">
+        <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem;">🔒 Account Security & Privacy</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Protect your trade journal and portfolio using a 4-digit Master PIN and Biometric fingerprint.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Master PIN (Default: 5189)</label>
+          <input type="password" maxlength="4" class="form-control" id="setting-pin" value="5189" style="letter-spacing: 0.3em; font-family: var(--font-mono); font-size: 1.2rem;">
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-top: var(--glass-border);">
+          <div>
+            <div style="font-weight: 600; font-size: 0.9rem;">Auto-Lock Screen (5 Minutes Inactivity)</div>
+            <div style="font-size: 0.78rem; color: var(--text-dim);">Locks app automatically when left unattended</div>
+          </div>
+          <input type="checkbox" id="setting-autolock" checked style="width: 20px; height: 20px; accent-color: var(--primary);">
+        </div>
+      </div>
+
+      <!-- Database Management & Firebase Cloud Firestore -->
+      <div class="card">
+        <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem;">🗄️ Database Management & Cloud Sync</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Your data is persistently saved in local <strong>IndexedDB</strong> and automatically backed up to <strong>Google Firebase Cloud Firestore</strong> (100% Free Forever).
+        </p>
+
+        <div style="background: rgba(8, 12, 20, 0.6); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Database Engine:</span>
+            <strong style="color: var(--primary);">IndexedDB + Firebase Firestore</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Current Cloud Status:</span>
+            <span id="db-status-badge" style="font-size: 0.75rem; font-weight: 700; color: var(--profit);">🟢 Synced (Firestore)</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Local Storage Cache:</span>
+            <span style="font-size: 0.75rem; color: var(--text-main); font-weight: 600;">Active &amp; Persistent</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Firebase Project ID (Optional - Preconfigured)</label>
+          <input type="text" class="form-control" id="setting-firebase-project" value="market-nirav-free">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Firebase Web API Key (Optional)</label>
+          <input type="text" class="form-control" id="setting-firebase-key" placeholder="AIzaSy...">
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+          <button class="btn btn-primary" id="btn-save-db-config" style="flex: 1;">Save Database Config</button>
+          <button class="btn btn-outline" id="btn-force-cloud-sync" style="flex: 1;">Sync Now</button>
+        </div>
+
+        <!-- Manual Backup / Restore -->
+        <div style="border-top: var(--glass-border); padding-top: 0.85rem; display: flex; gap: 0.5rem;">
+          <button class="btn btn-outline" id="btn-download-backup" style="flex: 1; font-size: 0.8rem;">
+            💾 Download Backup JSON
+          </button>
+          <button class="btn btn-outline" id="btn-trigger-restore" style="flex: 1; font-size: 0.8rem;">
+            📤 Restore from JSON
+          </button>
+          <input type="file" id="input-restore-file" accept=".json" style="display: none;">
+        </div>
+      </div>
+
+      <!-- Cloud Sync & Hosting -->
+      <div class="card" style="font-size: 0.82rem; color: var(--text-muted);">
+        <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">☁️ Netlify & Firebase Status</h3>
+        <p>• Deployment: <strong>Netlify Zero-Cost Static PWA</strong></p>
+        <p>• Cloud Database: <strong>Google Firebase Firestore (Spark Free Tier)</strong></p>
+        <p>• Operating Cost: <strong>₹0 / $0 per month (Guaranteed Free)</strong></p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <a href="#home" class="nav-item active" data-view="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>Today's Plan</span>
+    </a>
+    <a href="#scanner" class="nav-item" data-view="scanner">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <span>Find Stocks</span>
+    </a>
+    <a href="#detail" class="nav-item" data-view="detail">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"></line>
+        <line x1="12" y1="20" x2="12" y2="4"></line>
+        <line x1="6" y1="20" x2="6" y2="14"></line>
+      </svg>
+      <span>Past Record</span>
+    </a>
+    <a href="#portfolio" class="nav-item" data-view="portfolio">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+        <polyline points="10 9 9 9 8 9"></polyline>
+      </svg>
+      <span>Profit Diary</span>
+    </a>
+    <a href="#settings" class="nav-item" data-view="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+      <span>Settings</span>
+    </a>
+  </nav>
+
+  <!-- ========================================================
+       MODAL 1: PAPER BUY CONFIRMATION
+       ======================================================== -->
+  <div class="modal-overlay" id="modal-paper-buy">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Paper Buy Order</h3>
+        <button class="close-btn" data-close-modal="modal-paper-buy">&times;</button>
+      </div>
+      <div style="background: rgba(8, 12, 20, 0.6); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Stock Symbol:</span>
+          <strong id="modal-buy-symbol" style="font-size: 1.1rem; color: #fff;">ICICIBANK</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Entry Price:</span>
+          <span id="modal-buy-price" style="font-family: var(--font-mono); font-weight: 700;">₹1,264.50</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Target Exit:</span>
+          <span id="modal-buy-target" style="font-family: var(--font-mono); color: var(--profit); font-weight: 700;">₹1,320.00 (+4.4%)</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">Stop Loss:</span>
+          <span id="modal-buy-stop" style="font-family: var(--font-mono); color: var(--loss); font-weight: 700;">₹1,238.00 (-2.1%)</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Number of Shares (Calculated from ₹1,500 Risk)</label>
+        <input type="number" class="form-control" id="modal-buy-qty" value="38" style="font-family: var(--font-mono); font-size: 1.1rem;">
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        Virtual capital required: <strong id="modal-buy-total-cap" style="color: var(--text-main);">₹48,051.00</strong>
+      </div>
+
+      <button class="btn btn-primary" id="btn-confirm-paper-buy" style="height: 48px;">
+        Confirm Virtual Trade (Simulate Buy)
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 2: SECURITY LOCK SCREEN (PIN PAD)
+       ======================================================== -->
+  <div class="modal-overlay" id="modal-security-lock">
+    <div class="modal-content" style="text-align: center; max-width: 360px;">
+      <div style="width: 50px; height: 50px; border-radius: var(--radius-full); background: var(--primary-light); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+      <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.25rem;">TradeMitra Locked</h3>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Enter your 4-digit Master PIN to unlock</p>
+
+      <div class="pin-dots">
+        <div class="pin-dot" id="pdot-1"></div>
+        <div class="pin-dot" id="pdot-2"></div>
+        <div class="pin-dot" id="pdot-3"></div>
+        <div class="pin-dot" id="pdot-4"></div>
+      </div>
+
+      <div class="pin-grid">
+        <button class="pin-btn" data-key="1">1</button>
+        <button class="pin-btn" data-key="2">2</button>
+        <button class="pin-btn" data-key="3">3</button>
+        <button class="pin-btn" data-key="4">4</button>
+        <button class="pin-btn" data-key="5">5</button>
+        <button class="pin-btn" data-key="6">6</button>
+        <button class="pin-btn" data-key="7">7</button>
+        <button class="pin-btn" data-key="8">8</button>
+        <button class="pin-btn" data-key="9">9</button>
+        <button class="pin-btn" id="btn-biometric-unlock" title="Biometric Unlock">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2a10 10 0 0 0-6.88 17.22"></path>
+            <path d="M12 6a6 6 0 0 0-4.24 10.24"></path>
+            <circle cx="12" cy="12" r="2"></circle>
+          </svg>
+        </button>
+        <button class="pin-btn" data-key="0">0</button>
+        <button class="pin-btn" id="btn-pin-backspace" title="Delete">⌫</button>
+      </div>
+      <p style="font-size: 0.72rem; color: var(--text-dim); margin-top: 1rem;">Default Master PIN: <strong>5189</strong></p>
+    </div>
+  </div>
+
+  <!-- Firebase Cloud Firestore SDK (Compat for zero-build static web) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
 </html>

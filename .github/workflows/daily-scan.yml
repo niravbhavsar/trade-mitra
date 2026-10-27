@@ -1,0 +1,31 @@
+name: Market-Nirav Daily 10-Yr Swing Scanner
+
+on:
+  schedule:
+    # Runs Monday to Friday at 10:30 UTC (16:00 IST - 30 mins after NSE market close)
+    - cron: '30 10 * * 1-5'
+  workflow_dispatch: # Allows manual trigger from GitHub UI anytime
+
+jobs:
+  daily-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r research/requirements.txt
+
+      - name: Run Daily Scanner & Dispatch Telegram Alerts
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python research/scanner.py
