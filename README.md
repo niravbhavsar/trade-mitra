@@ -2,6 +2,12 @@
 
 This repository contains the Phase 0 starter for the Indian stock market research and paper-trading application.
 
+## Live demo
+
+Open the deployed prototype here:
+
+https://market-nirav.niravbhavsar.workers.dev
+
 ## Current stack
 
 - Frontend: Vite + vanilla JavaScript
