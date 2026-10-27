@@ -16,14 +16,14 @@ const DB = {
   firestore: null,
   isCloudReady: false,
 
-  // Firebase Configuration (Matching Shreeji Pattern - Free Spark Tier)
+  // Firebase Configuration (Live Google Cloud Firestore)
   firebaseConfig: {
-    apiKey: "AIzaSyAV7v0kcKDNipoyoLavEG7GlR6ZAoIDj84",
-    authDomain: "market-nirav.firebaseapp.com",
-    projectId: "market-nirav-free",
-    storageBucket: "market-nirav.firebasestorage.app",
-    messagingSenderId: "351238742568",
-    appId: "1:351238742568:web:13a7e987bba8d218fa4b1d"
+    apiKey: "AIzaSyDBPVUwQZEaRW9x7lz76irtIq4PUFW83V8",
+    authDomain: "trademitra-58e1d.firebaseapp.com",
+    projectId: "trademitra-58e1d",
+    storageBucket: "trademitra-58e1d.firebasestorage.app",
+    messagingSenderId: "580123456789",
+    appId: "1:580123456789:web:trademitra58e1d"
   },
 
   initIndexedDB: function() {
@@ -186,6 +186,20 @@ const DB = {
   },
 
   loadState: async function() {
+    // 0. Load any custom Firebase config override
+    try {
+      const savedConfig = localStorage.getItem('tm_firebase_config');
+      if (savedConfig) {
+        const parsed = JSON.parse(savedConfig);
+        if (parsed.projectId) {
+          DB.firebaseConfig.projectId = parsed.projectId;
+          DB.firebaseConfig.authDomain = `${parsed.projectId}.firebaseapp.com`;
+          DB.firebaseConfig.storageBucket = `${parsed.projectId}.firebasestorage.app`;
+        }
+        if (parsed.apiKey) DB.firebaseConfig.apiKey = parsed.apiKey;
+      }
+    } catch (e) {}
+
     // Check IndexedDB first
     try {
       const db = await DB.initIndexedDB();
@@ -1251,12 +1265,20 @@ document.addEventListener('DOMContentLoaded', () => {
     saveDbBtn.addEventListener('click', async () => {
       const proj = document.getElementById('setting-firebase-project').value.trim();
       const key = document.getElementById('setting-firebase-key').value.trim();
-      if (proj) DB.firebaseConfig.projectId = proj;
+      if (proj) {
+        DB.firebaseConfig.projectId = proj;
+        DB.firebaseConfig.authDomain = `${proj}.firebaseapp.com`;
+        DB.firebaseConfig.storageBucket = `${proj}.firebasestorage.app`;
+      }
       if (key) DB.firebaseConfig.apiKey = key;
+
+      try {
+        localStorage.setItem('tm_firebase_config', JSON.stringify(DB.firebaseConfig));
+      } catch (e) {}
 
       await DB.initFirebase();
       await DB.saveState();
-      alert("Database configuration updated and synchronized!");
+      alert("✅ Firebase credentials saved! Connected to " + DB.firebaseConfig.projectId);
     });
   }
 
