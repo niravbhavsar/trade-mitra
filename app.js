@@ -2325,7 +2325,7 @@ async function triggerBiometricUnlock() {
           if (confirmUnlock) unlockApp();
           return;
         }
-        alert("Phone biometric or screen lock is not configured on this device. Please use Master PIN (5189).");
+        alert("Phone biometric or screen lock is not configured on this device. Please enter your 4-digit Master PIN.");
         return;
       }
 
@@ -2383,7 +2383,7 @@ async function triggerBiometricUnlock() {
       } else if (err.name === 'NotAllowedError') {
         alert("Biometric verification was cancelled. Please enter your 4-digit PIN.");
       } else {
-        alert(`Biometric prompt: ${err.message}. Please enter PIN 5189.`);
+        alert("Please enter your 4-digit Master PIN to unlock.");
       }
     }
   } else {
@@ -2394,7 +2394,7 @@ async function triggerBiometricUnlock() {
         return;
       }
     } else {
-      alert("Biometric sensor is not supported on this browser. Please enter your 4-digit PIN (Default: 5189).");
+      alert("Biometric sensor is not supported on this browser. Please enter your 4-digit Master PIN.");
     }
   }
 }
@@ -2426,7 +2426,7 @@ function verifyPin() {
   if (AppState.enteredPin === AppState.pin) {
     unlockApp();
   } else {
-    alert("Incorrect Master PIN. Default PIN is 5189.");
+    alert("Incorrect Master PIN. Please try again.");
     AppState.enteredPin = '';
     updatePinDots();
   }
