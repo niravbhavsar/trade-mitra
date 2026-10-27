@@ -1111,6 +1111,12 @@ function setThemeMode(theme, save = true) {
   const selector = document.getElementById('setting-theme-selector');
   if (selector) selector.value = theme;
   if (save) DB.saveState();
+
+  if (AppState.currentView === 'detail' && typeof renderDetailView === 'function') {
+    renderDetailView(AppState.selectedStockSymbol);
+  } else if (AppState.currentView === 'scanner' && typeof renderScannerView === 'function') {
+    renderScannerView(AppState.scannerFilter || 'all');
+  }
 }
 
 function toggleTheme() {
@@ -1618,7 +1624,7 @@ function renderScannerView(filter = 'all') {
       actionBox.innerHTML = `
         <div style="background: rgba(14, 165, 233, 0.08); border: 1px dashed var(--primary); border-radius: var(--radius-sm); padding: 0.75rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
           <div>
-            <div style="font-weight: 700; color: #fff; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+            <div style="font-weight: 700; color: var(--text-main); font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
               <span>🔍 Check NSE Ticker:</span>
               <span style="color: var(--primary); font-family: var(--font-mono); font-weight: 800; font-size: 0.95rem;">${cleanSymbol}</span>
               ${existsInPool ? '<span class="badge badge-hold" style="font-size: 0.65rem;">In Watchlist</span>' : '<span class="badge badge-buy" style="font-size: 0.65rem;">Ready to Backtest</span>'}
@@ -1646,7 +1652,7 @@ function renderScannerView(filter = 'all') {
       <tr>
         <td colspan="6" style="text-align: center; padding: 2.25rem 1rem;">
           <div style="font-size: 2rem; margin-bottom: 0.4rem;">🔍</div>
-          <div style="font-weight: 700; color: #fff; font-size: 0.95rem; margin-bottom: 0.35rem;">
+          <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem; margin-bottom: 0.35rem;">
             No monitored stocks match "${rawQuery}"
           </div>
           <p style="font-size: 0.8rem; color: var(--text-muted); max-width: 420px; margin: 0 auto 1.25rem auto;">
@@ -1686,7 +1692,7 @@ function renderScannerView(filter = 'all') {
       <tr>
         <td>
           <div style="display: flex; align-items: center; flex-wrap: wrap;">
-            <span style="font-weight: 700; color: #fff;">${stock.symbol}</span>
+            <span style="font-weight: 700; color: var(--text-main);">${stock.symbol}</span>
             ${catBadge}
           </div>
           <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 2px;">${stock.name} • ${stock.sector}</div>
@@ -1783,7 +1789,8 @@ function drawCandlestickChart(stock, target, stopLoss) {
   const width = rect.width;
   const height = rect.height;
 
-  ctx.fillStyle = '#080d1a';
+  const isLight = document.body.classList.contains('light-theme');
+  ctx.fillStyle = isLight ? '#f8fafc' : '#080d1a';
   ctx.fillRect(0, 0, width, height);
 
   const basePrice = stock.cmp;
@@ -1813,7 +1820,7 @@ function drawCandlestickChart(stock, target, stopLoss) {
     return chartHeight - ((p - minPrice) / priceRange) * (chartHeight - 30) - 15;
   }
 
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+  ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.05)';
   ctx.lineWidth = 1;
   for (let i = 1; i <= 4; i++) {
     const gridY = (chartHeight / 5) * i;
@@ -1925,7 +1932,7 @@ function renderPortfolioView() {
       <tr>
         <td style="font-size: 0.78rem; color: var(--text-dim);">${trade.date}</td>
         <td>
-          <span style="font-weight: 700; color: #fff;">${trade.symbol}</span>
+          <span style="font-weight: 700; color: var(--text-main);">${trade.symbol}</span>
           <span class="brand-tag" style="font-size: 0.6rem; margin-left: 4px;">${modeBadge}</span>
         </td>
         <td>${trade.holdingDays}</td>

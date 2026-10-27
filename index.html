@@ -303,7 +303,7 @@
         </div>
 
         <!-- Plain Language Checklist -->
-        <div style="background: rgba(8, 12, 20, 0.6); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.05);">
+        <div class="info-card-box">
           <h4 style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.5rem;">Why this stock is suggested today:</h4>
           <div class="checklist-item">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -356,22 +356,22 @@
         </div>
 
         <div class="stats-grid" style="margin-top: 1rem; margin-bottom: 0;">
-          <div class="stat-card" style="background: rgba(8, 12, 20, 0.6);">
+          <div class="stat-card">
             <div class="stat-label">Practice Trades Taken</div>
             <div class="stat-value" id="journal-trade-count">11 Trades</div>
             <div class="stat-trend up">Goal: 25+ Trades</div>
           </div>
-          <div class="stat-card" style="background: rgba(8, 12, 20, 0.6);">
+          <div class="stat-card">
             <div class="stat-label">Observed Win Rate</div>
             <div class="stat-value profit" id="journal-win-rate">81.8%</div>
             <div class="stat-trend up">Target: &gt;70%</div>
           </div>
-          <div class="stat-card" style="background: rgba(8, 12, 20, 0.6);">
+          <div class="stat-card">
             <div class="stat-label">Net Profit Pocketed</div>
             <div class="stat-value profit" id="journal-net-profit">+₹6,420</div>
             <div class="stat-trend up">+6.42% Total Gain</div>
           </div>
-          <div class="stat-card" style="background: rgba(8, 12, 20, 0.6);">
+          <div class="stat-card">
             <div class="stat-label">Profit-to-Loss Ratio</div>
             <div class="stat-value" id="journal-profit-factor">3.45</div>
             <div class="stat-trend up">Very Safe</div>
@@ -535,7 +535,7 @@
           <div style="margin-top: 4px;">• <strong>For Multi-Device Cloud Sync:</strong> If you want your phone and laptop to share the same portfolio, open <a href="https://console.firebase.google.com" target="_blank" style="color: var(--primary); text-decoration: underline;">console.firebase.google.com</a>, create a free project named "trademitra", click Firestore Database > Create, and enter your Project ID below.</div>
         </div>
 
-        <div style="background: rgba(8, 12, 20, 0.6); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 1rem;">
+        <div class="info-card-box" style="margin-bottom: 1rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 0.8rem; color: var(--text-muted);">Database Engine:</span>
             <strong style="color: var(--primary);">IndexedDB + Firebase Firestore</strong>
@@ -640,10 +640,10 @@
         <h3 class="modal-title">Confirm Paper Buy Order</h3>
         <button class="close-btn" data-close-modal="modal-paper-buy">&times;</button>
       </div>
-      <div style="background: rgba(8, 12, 20, 0.6); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+      <div class="info-card-box" style="margin-bottom: 1rem; padding: 1rem;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
           <span style="color: var(--text-muted);">Stock Symbol:</span>
-          <strong id="modal-buy-symbol" style="font-size: 1.1rem; color: #fff;">ICICIBANK</strong>
+          <strong id="modal-buy-symbol" style="font-size: 1.1rem; color: var(--text-main);">ICICIBANK</strong>
         </div>
         <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
           <span style="color: var(--text-muted);">Entry Price:</span>
