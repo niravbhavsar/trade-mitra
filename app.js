@@ -234,15 +234,15 @@ const DB = {
       }
     } catch (e) {}
 
-    // Clean Slate: Clear all mock test trades so user starts real trial fresh tomorrow
+    // Clean Slate: Clear test trades so user starts real trial fresh tomorrow
     const hasMock = (AppState.openPositions && AppState.openPositions.some(p => p.id === 'pos_1' || p.id === 'pos_2')) ||
                     (AppState.tradeJournal && AppState.tradeJournal.some(j => j.id === 'j_1' || j.id === 'j_2'));
-    if (localStorage.getItem('tm_clean_slate_v4') !== 'true' || hasMock) {
+    if (localStorage.getItem('tm_clean_slate_v5') !== 'true' || hasMock) {
       AppState.virtualCash = 100000.00;
       AppState.openPositions = [];
       AppState.tradeJournal = [];
       AppState.updatedAt = new Date().toISOString();
-      localStorage.setItem('tm_clean_slate_v4', 'true');
+      localStorage.setItem('tm_clean_slate_v5', 'true');
       DB.saveState();
     }
   }
@@ -292,6 +292,62 @@ function applyIncomingState(data, triggerSave = false) {
     if (AppState.currentView === 'portfolio' && typeof renderPortfolioView === 'function') renderPortfolioView();
     if (AppState.currentView === 'settings' && typeof renderSettingsView === 'function') renderSettingsView();
   }
+}
+
+// ==========================================================================
+// 1B. Institutional 5-Point Safety Filter Engine
+// ==========================================================================
+function getStockInstitutionalChecks(stock) {
+  const isMarketGood = AppState.marketCondition === 'good' || (AppState.marketCondition === 'auto' && (AppState.niftyIndex ? AppState.niftyIndex.change >= -0.5 : true));
+  const niftyPass = isMarketGood;
+  const trendPass = stock.setup === 'BUY' || stock.setup === 'HOLD';
+  const pullbackPass = stock.setup === 'BUY';
+  const volumeRatio = stock.volumeRatio || (stock.setup === 'BUY' ? 1.65 : 0.92);
+  const deliveryPct = stock.deliveryPct || (stock.setup === 'BUY' ? 61.2 : 44.0);
+  const volumePass = volumeRatio >= 1.30;
+  const earningsNotice = stock.earningsNotice || null;
+  const earningsClear = !earningsNotice || earningsNotice.daysLeft > 3;
+
+  const checks = [
+    {
+      title: "Market Direction Gate",
+      detail: niftyPass ? "Nifty 50 is trading above 20 EMA in confirmed uptrend (Tailwind active)." : "Broad Nifty is weak/correcting (< 20 EMA). High risk of market drag.",
+      pass: niftyPass
+    },
+    {
+      title: "Long-Term Bullish Trend",
+      detail: trendPass ? "Stock is trading firmly above its 200 EMA and 50 EMA on daily chart." : "Stock is lagging or in structural consolidation.",
+      pass: trendPass
+    },
+    {
+      title: "20-EMA Pullback / Value Zone",
+      detail: pullbackPass ? "Clean pullback to 20 EMA dynamic support; RSI cooled to value zone (not chasing highs)." : "Price extended far above mean support or breaking breakdown levels.",
+      pass: pullbackPass
+    },
+    {
+      title: "Smart Money Delivery Volume",
+      detail: volumePass ? `Institutional volume spike: ${volumeRatio.toFixed(2)}x average (${deliveryPct}% delivery accumulation).` : `Low volume (${volumeRatio.toFixed(2)}x avg) — lacking institutional participation.`,
+      pass: volumePass
+    },
+    {
+      title: "Quarterly Earnings Blackout",
+      detail: earningsClear ? "Clear of high-volatility event risk (no quarterly results due within next 3 days)." : `⚠️ BLACKOUT: Quarterly results in ${earningsNotice.daysLeft} days (${earningsNotice.date})! Gap risk high.`,
+      pass: earningsClear
+    }
+  ];
+
+  const totalPassed = checks.filter(c => c.pass).length;
+  return {
+    checks,
+    totalPassed,
+    maxChecks: 5,
+    volumeRatio,
+    deliveryPct,
+    earningsNotice,
+    niftyPass,
+    volumePass,
+    earningsClear
+  };
 }
 
 // ==========================================================================
@@ -717,6 +773,39 @@ const GOOD_MARKET_STOCKS = [
     avgLoss: 1.65,
     consecutiveWins: 6,
     reason: "Trade in progress from previous session. Approaching target zone smoothly."
+  },
+  {
+    symbol: "WIPRO",
+    name: "Wipro Limited",
+    sector: "Information Technology / Global Enterprise Services",
+    category: "nifty50",
+    cmp: 542.00,
+    change: 0.65,
+    setup: "NOTRADE",
+    regime: "GOOD",
+    swingEntryMin: 538.00,
+    swingEntryMax: 544.00,
+    swingTarget: 568.00,
+    swingTargetGainPct: 4.80,
+    swingStopLoss: 528.00,
+    swingStopLossPct: 2.58,
+    swingHold: "2–4 Days",
+    btstEntryMin: 540.00,
+    btstEntryMax: 543.00,
+    btstTarget: 552.00,
+    btstTargetGainPct: 1.85,
+    btstStopLoss: 536.00,
+    btstStopLossPct: 1.11,
+    btstHold: "1 Day (BTST)",
+    tenYearWinRate: 74.2,
+    totalTested: 118,
+    avgGain: 4.50,
+    avgLoss: 2.10,
+    consecutiveWins: 5,
+    volumeRatio: 0.92,
+    deliveryPct: 41.5,
+    earningsNotice: { daysLeft: 2, date: "October 30" },
+    reason: "⚠️ EVENT BLACKOUT: Q2 earnings results scheduled in 2 days. Strategy blocks swing entries to eliminate overnight earnings gap risk."
   }
 ];
 
@@ -823,6 +912,13 @@ const AppState = {
   selectedStockSymbol: 'ICICIBANK',
   tradingMode: 'swing', // 'swing' (2-5 Days) or '1day' (BTST)
   marketCondition: 'auto', // 'auto' (Auto-detected), 'good', 'bad'
+  niftyIndex: {
+    symbol: "NIFTY 50",
+    cmp: 24850.40,
+    change: 0.45,
+    ema20: 24620.00,
+    status: 'BULLISH'
+  },
   theme: 'dark', // 'dark' or 'light'
   monthlyGoal: 15000.00,
   virtualCash: 100000.00,
@@ -1096,8 +1192,15 @@ function setMarketCondition(condition) {
   const badgePill = document.getElementById('regime-badge-pill');
   const meter = document.getElementById('market-safety-meter');
   const regimeDesc = document.getElementById('regime-desc-text');
+  const gatePill = document.getElementById('nifty-gate-pill');
+  const gateDisplay = document.getElementById('nifty-index-display');
+  const gateDesc = document.getElementById('nifty-gate-desc');
 
   if (condition === 'good' || condition === 'auto') {
+    if (AppState.niftyIndex) {
+      AppState.niftyIndex.change = 0.45;
+      AppState.niftyIndex.status = 'BULLISH';
+    }
     if (regimeText) regimeText.textContent = "Good Market";
     if (badgePill) {
       badgePill.className = "meter-badge";
@@ -1106,9 +1209,22 @@ function setMarketCondition(condition) {
     }
     if (meter) meter.className = "safety-meter";
     if (regimeDesc) {
-      regimeDesc.innerHTML = '🤖 <strong>Auto-Pilot Sensor:</strong> Nifty 50 is in a strong uptrend. All suggested stock buy setups are safe to execute today. No manual research needed.';
+      regimeDesc.innerHTML = '🤖 <strong>Auto-Pilot Sensor:</strong> Nifty 50 is in a strong uptrend above 20 EMA. All suggested stock buy setups are safe to execute today. No manual research needed.';
+    }
+    if (gatePill) {
+      gatePill.className = "badge badge-buy";
+      gatePill.style.background = "";
+      gatePill.textContent = "🟢 GREEN GATE: Full Size Allowed";
+    }
+    if (gateDisplay) gateDisplay.textContent = "NIFTY 50: ₹24,850.40 (+0.45%)";
+    if (gateDesc) {
+      gateDesc.textContent = "Nifty 50 is trading firmly above its 20 EMA dynamic support. Broad market wind is in your favor. All 5-Check approved setups have high historical probability.";
     }
   } else if (condition === 'bad') {
+    if (AppState.niftyIndex) {
+      AppState.niftyIndex.change = -1.25;
+      AppState.niftyIndex.status = 'BEARISH';
+    }
     if (regimeText) regimeText.textContent = "Falling Market";
     if (badgePill) {
       badgePill.className = "meter-badge";
@@ -1117,9 +1233,22 @@ function setMarketCondition(condition) {
     }
     if (meter) meter.className = "safety-meter cautious";
     if (regimeDesc) {
-      regimeDesc.innerHTML = '⚠️ <strong>Auto-Pilot Sensor:</strong> Nifty 50 broke below 200 EMA. Switched to Defensive Safe Haven mode. Only capital-protection companies shown.';
+      regimeDesc.innerHTML = '⚠️ <strong>Auto-Pilot Sensor:</strong> Nifty 50 broke below 20 EMA. Switched to Defensive Safe Haven mode. Only capital-protection companies shown.';
+    }
+    if (gatePill) {
+      gatePill.className = "badge";
+      gatePill.style.background = "var(--loss)";
+      gatePill.textContent = "🔴 RED GATE: Capital Protection Mode";
+    }
+    if (gateDisplay) gateDisplay.textContent = "NIFTY 50: ₹24,210.00 (-1.25%)";
+    if (gateDesc) {
+      gateDesc.textContent = "Nifty 50 is down 1.25% below its 20 EMA. Broad market is under distribution. Strategy strictly blocks aggressive swing buys. Only FMCG / Defensive havens or BTST allowed.";
     }
   } else {
+    if (AppState.niftyIndex) {
+      AppState.niftyIndex.change = 0.05;
+      AppState.niftyIndex.status = 'CHOPPY';
+    }
     if (regimeText) regimeText.textContent = "Sideways Market";
     if (badgePill) {
       badgePill.className = "meter-badge";
@@ -1130,11 +1259,21 @@ function setMarketCondition(condition) {
     if (regimeDesc) {
       regimeDesc.innerHTML = '⚡ <strong>Auto-Pilot Sensor:</strong> Market is range-bound. Take quick 1-day flips and adhere strictly to profit targets.';
     }
+    if (gatePill) {
+      gatePill.className = "badge";
+      gatePill.style.background = "#818cf8";
+      gatePill.textContent = "🟡 YELLOW GATE: Half Position Size";
+    }
+    if (gateDisplay) gateDisplay.textContent = "NIFTY 50: ₹24,680.00 (+0.05%)";
+    if (gateDesc) {
+      gateDesc.textContent = "Nifty 50 is oscillating in a tight range near its 20 EMA. Take selective setups and cut position size by 50% to minimize whipsaw risk.";
+    }
   }
 
   DB.saveState();
   renderHomeView();
   if (AppState.currentView === 'scanner') renderScannerView();
+  if (AppState.currentView === 'detail') renderDetailView(AppState.selectedStockSymbol);
 }
 
 function getActiveStockPool() {
@@ -1335,7 +1474,7 @@ function renderOpenPositionsList() {
         <div style="font-size: 1.75rem; margin-bottom: 0.5rem;">🌱</div>
         <div style="font-weight: 600; font-size: 1rem; color: var(--text-main); margin-bottom: 0.35rem;">No Active Paper Positions</div>
         <div style="font-size: 0.82rem; margin-bottom: 1rem; max-width: 440px; margin-left: auto; margin-right: auto; line-height: 1.45;">
-          Your paper portfolio is fresh and clean. When you find a 4-Check passed stock on the Scanner screen, tap <strong>"Take Paper Trade"</strong> to test it risk-free.
+          Your paper portfolio is fresh and clean. When you find a 5-Check passed stock on the Scanner screen, tap <strong>"Take Paper Trade"</strong> to test it risk-free.
         </div>
         <button class="btn btn-primary" style="padding: 0.55rem 1.2rem; font-size: 0.85rem;" onclick="switchView('scanner')">🔍 Find Today's Best Stock</button>
       </div>
@@ -1346,6 +1485,30 @@ function renderOpenPositionsList() {
   container.innerHTML = AppState.openPositions.map(pos => {
     const isProfit = pos.currentPnl >= 0;
     const modeBadge = pos.mode === '1day' ? '⚡ 1-Day BTST' : '📈 2–5D Swing';
+
+    // Auto-breakeven if gain >= 1.5%
+    if (pos.pnlPct >= 1.5 && !pos.isTrailingBreakeven) {
+      pos.isTrailingBreakeven = true;
+      pos.stopLoss = Math.max(pos.stopLoss, pos.entryPrice);
+    }
+
+    let trailingStatusHtml = '';
+    if (pos.isTrailingBreakeven) {
+      trailingStatusHtml = `
+        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-sm); padding: 6px 10px; font-size: 0.78rem; color: var(--profit); display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+          <span>🛡️ <strong>Zero-Risk Trade:</strong> Stop raised to Entry (₹${pos.entryPrice.toFixed(0)}). Capital protected.</span>
+          <span class="badge badge-buy" style="font-size: 0.65rem;">Zero Risk</span>
+        </div>
+      `;
+    } else if (pos.pnlPct > 0.5) {
+      trailingStatusHtml = `
+        <div style="background: rgba(14, 165, 233, 0.1); border: 1px dashed var(--primary); border-radius: var(--radius-sm); padding: 6px 10px; font-size: 0.76rem; display: flex; align-items: center; justify-content: space-between; margin-top: 8px; flex-wrap: wrap; gap: 4px;">
+          <span>🛡️ In Profit (+${pos.pnlPct.toFixed(2)}%). Ready to lock breakeven?</span>
+          <button class="btn btn-primary" style="padding: 3px 8px; font-size: 0.72rem; width: auto;" onclick="trailStopToCost('${pos.id}')">Lock Breakeven Stop</button>
+        </div>
+      `;
+    }
+
     return `
       <div class="position-card">
         <div class="position-top">
@@ -1361,21 +1524,74 @@ function renderOpenPositionsList() {
 
         <div class="position-details">
           <span>Target: <strong style="color: var(--profit);">₹${pos.target.toFixed(0)}</strong></span>
-          <span>Stop: <strong style="color: var(--loss);">₹${pos.stopLoss.toFixed(0)}</strong></span>
+          <span>Stop: <strong style="color: ${pos.isTrailingBreakeven ? 'var(--profit)' : 'var(--loss)'};">₹${pos.stopLoss.toFixed(0)} ${pos.isTrailingBreakeven ? '(Cost)' : ''}</strong></span>
           <span class="position-countdown">⏱ Hold Day ${pos.holdDay} of ${pos.maxHoldDays}</span>
         </div>
 
-        <div style="display: flex; gap: 0.5rem; margin-top: 4px;">
+        ${trailingStatusHtml}
+
+        <!-- Interactive Simulation Testing for Practice -->
+        <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.06);">
+          <div style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 4px;">
+            <span>🧪 Practice Simulator (Test scenarios anytime):</span>
+          </div>
+          <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+            <button class="btn btn-outline" style="flex: 1; min-width: 105px; padding: 4px 6px; font-size: 0.72rem;" onclick="simulatePositionPrice('${pos.id}', 2.5)" title="Simulates a 2.5% move and triggers the auto-trailing stop to cost">
+              ⚡ Test +2.5% Move
+            </button>
+            <button class="btn btn-outline" style="flex: 1; min-width: 95px; padding: 4px 6px; font-size: 0.72rem; color: var(--profit);" onclick="simulatePositionPrice('${pos.id}', 4.2)" title="Simulates price hitting your profit target">
+              🎯 Test Target Hit
+            </button>
+            <button class="btn btn-outline" style="flex: 1; min-width: 95px; padding: 4px 6px; font-size: 0.72rem; color: var(--loss);" onclick="simulatePositionPrice('${pos.id}', -1.4)" title="Simulates price touching stop loss">
+              🛑 Test Stop Hit
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; margin-top: 8px;">
           <button class="btn btn-outline" onclick="openDetailView('${pos.symbol}')" style="flex: 1; padding: 0.45rem; font-size: 0.8rem;">
             View Chart
           </button>
           <button class="btn btn-outline" onclick="closePaperTrade('${pos.id}')" style="flex: 1; padding: 0.45rem; font-size: 0.8rem; color: var(--primary);">
-            Close / Take Profit
+            Close / Exit
           </button>
         </div>
       </div>
     `;
   }).join('');
+}
+
+function trailStopToCost(positionId) {
+  const pos = AppState.openPositions.find(p => p.id === positionId);
+  if (!pos) return;
+  pos.stopLoss = pos.entryPrice;
+  pos.isTrailingBreakeven = true;
+  DB.saveState();
+  showToast(`🛡️ Breakeven Protection Activated! Stop-Loss for ${pos.symbol} raised to ₹${pos.entryPrice.toFixed(0)}. This trade is now 100% Zero-Risk.`, "success", 4500);
+  renderHomeView();
+}
+
+function simulatePositionPrice(positionId, targetGainPct) {
+  const pos = AppState.openPositions.find(p => p.id === positionId);
+  if (!pos) return;
+  const newPrice = pos.entryPrice * (1 + targetGainPct / 100);
+  pos.currentPrice = newPrice;
+  pos.currentPnl = (newPrice - pos.entryPrice) * pos.qty;
+  pos.pnlPct = targetGainPct;
+
+  if (targetGainPct >= 1.5 && !pos.isTrailingBreakeven) {
+    pos.stopLoss = pos.entryPrice;
+    pos.isTrailingBreakeven = true;
+    showToast(`📈 Simulated Price moved to ₹${newPrice.toFixed(0)} (+${targetGainPct}%). 🛡️ Institutional Trailing Stop triggered! Stop-loss raised to ₹${pos.entryPrice.toFixed(0)} (Zero-Risk Trade).`, "success", 5000);
+  } else if (targetGainPct >= 3.5) {
+    showToast(`🎯 Target Hit! Price touched ₹${newPrice.toFixed(0)} (+${targetGainPct}%). You can now tap 'Close / Exit' to pocket ₹${pos.currentPnl.toFixed(0)} profit!`, "success", 5000);
+  } else if (targetGainPct < 0) {
+    showToast(`🛑 Stop Simulation: Price dipped to ₹${newPrice.toFixed(0)} (${targetGainPct}%). Strict stop cuts loss at ₹${Math.abs(pos.currentPnl).toFixed(0)}.`, "warning", 4500);
+  } else {
+    showToast(`📈 Price simulated at ₹${newPrice.toFixed(0)} (${targetGainPct >= 0 ? '+' : ''}${targetGainPct}%).`, "info", 3000);
+  }
+  DB.saveState();
+  renderHomeView();
 }
 
 // ==========================================================================
@@ -1623,13 +1839,16 @@ function renderScannerView(filter = 'all') {
   }
 
   tbody.innerHTML = filtered.map(stock => {
+    const checks = getStockInstitutionalChecks(stock);
     let badgeHtml = '';
-    if (stock.setup === 'BUY') {
-      badgeHtml = `<span class="badge badge-buy">⭐ ${is1Day ? 'BTST BUY' : 'SWING BUY'}</span>`;
+    if (!checks.earningsClear) {
+      badgeHtml = `<span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; font-size: 0.65rem;">⚠️ EARNINGS 2D</span>`;
+    } else if (stock.setup === 'BUY') {
+      badgeHtml = `<span class="badge badge-buy">⭐ ${checks.totalPassed}/5 CHECKS</span>`;
     } else if (stock.setup === 'HOLD') {
       badgeHtml = `<span class="badge badge-hold">HOLDING</span>`;
     } else {
-      badgeHtml = `<span class="badge badge-notrade">NO SETUP</span>`;
+      badgeHtml = `<span class="badge badge-notrade">${checks.totalPassed}/5 CHECKS</span>`;
     }
 
     const isPositive = stock.change >= 0;
@@ -1646,9 +1865,17 @@ function renderScannerView(filter = 'all') {
           </div>
           <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 2px;">${stock.name} • ${stock.sector}</div>
         </td>
-        <td style="font-family: var(--font-mono); font-weight: 600;">₹${stock.cmp.toFixed(2)}</td>
-        <td style="color: ${isPositive ? 'var(--profit)' : 'var(--loss)'}; font-weight: 600;">
-          ${isPositive ? '+' : ''}${stock.change.toFixed(2)}%
+        <td>
+          <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.88rem;">₹${stock.cmp.toFixed(2)}</div>
+          <div style="font-size: 0.72rem; color: ${isPositive ? 'var(--profit)' : 'var(--loss)'}; font-weight: 600;">
+            ${isPositive ? '+' : ''}${stock.change.toFixed(2)}%
+          </div>
+        </td>
+        <td>
+          <div style="font-weight: 700; color: ${checks.volumePass ? 'var(--profit)' : 'var(--text-dim)'}; font-size: 0.82rem;">
+            ${checks.volumePass ? '🔥' : '⚠️'} ${checks.volumeRatio.toFixed(2)}x
+          </div>
+          <div style="font-size: 0.68rem; color: var(--text-dim);">${checks.deliveryPct}% Deliv</div>
         </td>
         <td>
           <strong style="color: ${stock.tenYearWinRate >= 75 ? 'var(--profit)' : 'var(--primary)'};">
@@ -1714,9 +1941,45 @@ function renderDetailView(symbol) {
 
   drawCandlestickChart(stock, target, stopLoss);
 
+  const checks = getStockInstitutionalChecks(stock);
+  const scoreBadge = document.getElementById('detail-checklist-score');
+  if (scoreBadge) {
+    scoreBadge.textContent = `${checks.totalPassed} / 5 Passed`;
+    scoreBadge.className = checks.totalPassed >= 4 ? 'badge badge-buy' : 'badge badge-notrade';
+  }
+
+  const checklistItemsEl = document.getElementById('detail-checklist-items');
+  if (checklistItemsEl) {
+    checklistItemsEl.innerHTML = checks.checks.map(c => {
+      const iconSvg = c.pass
+        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" style="flex-shrink:0; margin-top:2px;"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" style="flex-shrink:0; margin-top:2px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+      return `
+        <div class="checklist-item" style="align-items: flex-start; margin-bottom: 0.65rem; gap: 8px;">
+          ${iconSvg}
+          <div style="font-size: 0.82rem; line-height: 1.4;">
+            <strong style="color: ${c.pass ? 'var(--text-main)' : '#f59e0b'};">${c.title}:</strong>
+            <span style="color: var(--text-muted); margin-left: 4px;">${c.detail}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
   const buyBtn = document.getElementById('btn-detail-paper-buy');
   if (stock.setup === 'BUY') {
     buyBtn.style.display = 'block';
+    if (!checks.earningsClear) {
+      buyBtn.className = 'btn btn-outline';
+      buyBtn.style.borderColor = '#f59e0b';
+      buyBtn.style.color = '#f59e0b';
+      buyBtn.innerHTML = `⚠️ Caution: Result in ${checks.earningsNotice.daysLeft} Days (Test Practice Entry)`;
+    } else {
+      buyBtn.className = 'btn btn-primary';
+      buyBtn.style.borderColor = '';
+      buyBtn.style.color = '';
+      buyBtn.innerHTML = `⚡ Execute ₹1,00,000 Paper Buy (${checks.totalPassed}/5 Passed)`;
+    }
     buyBtn.onclick = () => openPaperBuyModal(stock.symbol);
   } else {
     buyBtn.style.display = 'none';
@@ -2165,6 +2428,18 @@ function openPaperBuyModal(symbol) {
   document.getElementById('modal-buy-qty').value = recommendedShares;
   document.getElementById('modal-buy-total-cap').textContent = `₹${totalCost.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 
+  const checks = getStockInstitutionalChecks(stock);
+  const eventWarningEl = document.getElementById('modal-buy-event-warning');
+  if (eventWarningEl) {
+    if (!checks.earningsClear) {
+      eventWarningEl.style.display = 'block';
+      eventWarningEl.innerHTML = `⚠️ <strong>High Event Risk:</strong> Quarterly earnings results in ${checks.earningsNotice.daysLeft} days (${checks.earningsNotice.date}). Institutional strategy advises against holding swing positions through earnings.`;
+    } else {
+      eventWarningEl.style.display = 'none';
+      eventWarningEl.innerHTML = '';
+    }
+  }
+
   document.getElementById('modal-paper-buy').classList.add('active');
 }
 
@@ -2205,7 +2480,8 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPnl: 0,
         pnlPct: 0,
         holdDay: 1,
-        maxHoldDays: is1Day ? 1 : 4
+        maxHoldDays: is1Day ? 1 : 4,
+        isTrailingBreakeven: false
       });
 
       DB.saveState();

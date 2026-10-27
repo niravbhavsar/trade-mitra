@@ -189,6 +189,23 @@
         <span class="badge badge-buy" id="scanner-stock-count-badge">16 Monitored</span>
       </div>
 
+      <!-- Institutional Market Regime & Nifty Gate Card -->
+      <div class="card" id="nifty-gate-card" style="margin-bottom: 0.85rem; border: 1px solid rgba(16, 185, 129, 0.35); background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(14, 165, 233, 0.05)), var(--bg-surface);">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.4rem;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.15rem;">🧭</span>
+            <div>
+              <span style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Institutional Safety Gate</span>
+              <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main);" id="nifty-index-display">NIFTY 50: ₹24,850.40 (+0.45%)</div>
+            </div>
+          </div>
+          <span class="badge badge-buy" id="nifty-gate-pill">🟢 GREEN GATE: Full Size Allowed</span>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; line-height: 1.45;" id="nifty-gate-desc">
+          Nifty 50 is trading firmly above its 20 EMA dynamic support. Broad market wind is in your favor. All 5-Check approved setups have high historical probability.
+        </p>
+      </div>
+
       <!-- Search Any Stock Input Box -->
       <div class="stock-search-card" style="margin-bottom: 0.85rem;">
         <div class="search-input-wrapper">
@@ -207,7 +224,7 @@
       <!-- Filter Chips -->
       <div class="filter-bar">
         <button class="filter-chip active" data-filter="all">All Stocks</button>
-        <button class="filter-chip" data-filter="setups">⭐ Active Buy Setups</button>
+        <button class="filter-chip" data-filter="setups">⭐ 5-Check Buy Setups</button>
         <button class="filter-chip" data-filter="midcaps">🚀 High-Growth Midcaps</button>
         <button class="filter-chip" data-filter="nifty50">🏢 Nifty 50 Bluechips</button>
         <button class="filter-chip" data-filter="holding">In Paper Portfolio</button>
@@ -221,9 +238,9 @@
               <tr>
                 <th>Stock / Company</th>
                 <th>Price (CMP)</th>
-                <th>24h Chg</th>
+                <th>Smart Money Vol</th>
                 <th>10-Yr Win Rate</th>
-                <th>Swing Setup</th>
+                <th>Institutional Setup</th>
                 <th style="text-align: right;">Action</th>
               </tr>
             </thead>
@@ -302,20 +319,14 @@
           </div>
         </div>
 
-        <!-- Plain Language Checklist -->
-        <div class="info-card-box">
-          <h4 style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.5rem;">Why this stock is suggested today:</h4>
-          <div class="checklist-item">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            <span><strong>Long-Term Bullish Trend:</strong> Stock is trading well above its 200 EMA and 50 EMA on the daily timeframe.</span>
-          </div>
-          <div class="checklist-item">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            <span><strong>Healthy 2-Day Pullback:</strong> Price touched 20 EMA dynamic support with RSI cooled off to 44 (perfect discount zone).</span>
-          </div>
-          <div class="checklist-item">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            <span><strong>Institutional Buying Volume:</strong> Confirmed bullish hammer candle with 1.4× the 20-day average volume.</span>
+        <!-- 5-Point Institutional Safety Checklist -->
+        <div class="info-card-box" id="detail-checklist-container">
+          <h4 style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.65rem; display: flex; align-items: center; justify-content: space-between;">
+            <span>🛡️ Institutional 5-Point Safety Filter</span>
+            <span class="badge badge-buy" id="detail-checklist-score">5 / 5 Passed</span>
+          </h4>
+          <div id="detail-checklist-items">
+            <!-- Rendered dynamically by app.js -->
           </div>
         </div>
       </div>
@@ -658,6 +669,9 @@
           <span id="modal-buy-stop" style="font-family: var(--font-mono); color: var(--loss); font-weight: 700;">₹1,238.00 (-2.1%)</span>
         </div>
       </div>
+
+      <!-- Optional High Event Risk Warning -->
+      <div id="modal-buy-event-warning" style="display: none; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 6px; padding: 8px 10px; font-size: 0.78rem; color: #f59e0b; margin-bottom: 0.75rem;"></div>
 
       <div class="form-group">
         <label class="form-label">Number of Shares (Calculated from ₹1,500 Risk)</label>
