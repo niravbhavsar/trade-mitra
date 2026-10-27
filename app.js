@@ -74,10 +74,15 @@ const DB = {
           const docSnap = await docRef.get();
           if (docSnap.exists) {
             const remoteData = docSnap.data();
+            const hasLegacyMockTrades = (remoteData.openPositions && remoteData.openPositions.some(p => p.id === 'pos_1' || p.id === 'pos_2')) ||
+                                        (remoteData.tradeJournal && remoteData.tradeJournal.some(j => j.id === 'j_1' || j.id === 'j_2'));
             const remoteTime = remoteData.updatedAt ? new Date(remoteData.updatedAt).getTime() : 0;
             const localTime = AppState.updatedAt ? new Date(AppState.updatedAt).getTime() : 0;
 
-            if (remoteTime > localTime || !AppState.updatedAt) {
+            if (hasLegacyMockTrades) {
+              console.log("Purging legacy mock trades from Firestore with clean initial state.");
+              await docRef.set(DB.buildPayload(), { merge: true });
+            } else if (remoteTime > localTime || !AppState.updatedAt) {
               console.log("Adopting latest cloud state from Firestore.");
               applyIncomingState(remoteData, false);
               DB.saveLocalOnly(remoteData);
@@ -143,6 +148,9 @@ const DB = {
         .onSnapshot((doc) => {
           if (doc.exists) {
             const remoteData = doc.data();
+            const hasLegacyMockTrades = (remoteData.openPositions && remoteData.openPositions.some(p => p.id === 'pos_1' || p.id === 'pos_2')) ||
+                                        (remoteData.tradeJournal && remoteData.tradeJournal.some(j => j.id === 'j_1' || j.id === 'j_2'));
+            if (hasLegacyMockTrades) return;
             if (remoteData && remoteData.updatedAt && remoteData.updatedAt !== AppState.updatedAt) {
               console.log("Remote cloud update received from another device/browser.");
               applyIncomingState(remoteData, false);
@@ -214,7 +222,6 @@ const DB = {
         });
         if (data) {
           applyIncomingState(data, false);
-          return;
         }
       }
     } catch (e) {}
@@ -226,6 +233,18 @@ const DB = {
         applyIncomingState(JSON.parse(saved), false);
       }
     } catch (e) {}
+
+    // Clean Slate: Clear all mock test trades so user starts real trial fresh tomorrow
+    const hasMock = (AppState.openPositions && AppState.openPositions.some(p => p.id === 'pos_1' || p.id === 'pos_2')) ||
+                    (AppState.tradeJournal && AppState.tradeJournal.some(j => j.id === 'j_1' || j.id === 'j_2'));
+    if (localStorage.getItem('tm_clean_slate_v4') !== 'true' || hasMock) {
+      AppState.virtualCash = 100000.00;
+      AppState.openPositions = [];
+      AppState.tradeJournal = [];
+      AppState.updatedAt = new Date().toISOString();
+      localStorage.setItem('tm_clean_slate_v4', 'true');
+      DB.saveState();
+    }
   }
 };
 
@@ -794,110 +813,9 @@ const BAD_MARKET_STOCKS = [
   }
 ];
 
-const INITIAL_OPEN_POSITIONS = [
-  {
-    id: "pos_1",
-    symbol: "TCS",
-    name: "Tata Consultancy Services",
-    mode: "swing",
-    entryDate: "2026-10-26",
-    entryPrice: 4070.00,
-    currentPrice: 4120.00,
-    qty: 12,
-    target: 4280.00,
-    stopLoss: 4020.00,
-    capitalInvested: 48840.00,
-    currentPnl: 600.00,
-    pnlPct: 1.23,
-    holdDay: 2,
-    maxHoldDays: 4
-  },
-  {
-    id: "pos_2",
-    symbol: "LT",
-    name: "Larsen & Toubro Ltd",
-    mode: "swing",
-    entryDate: "2026-10-27",
-    entryPrice: 3610.00,
-    currentPrice: 3620.00,
-    qty: 14,
-    target: 3790.00,
-    stopLoss: 3535.00,
-    capitalInvested: 50540.00,
-    currentPnl: 140.00,
-    pnlPct: 0.28,
-    holdDay: 1,
-    maxHoldDays: 4
-  }
-];
+const INITIAL_OPEN_POSITIONS = [];
 
-const INITIAL_JOURNAL = [
-  {
-    id: "j_1",
-    date: "2026-10-24",
-    symbol: "ICICIBANK",
-    mode: "swing",
-    holdingDays: "3 Days",
-    entryPrice: 1210.00,
-    exitPrice: 1265.00,
-    qty: 35,
-    pnlRupees: 1925.00,
-    pnlPct: 4.55,
-    reason: "🎯 Target Hit (+4.55%)"
-  },
-  {
-    id: "j_2",
-    date: "2026-10-23",
-    symbol: "RELIANCE",
-    mode: "1day",
-    holdingDays: "1 Day (BTST)",
-    entryPrice: 2910.00,
-    exitPrice: 2972.00,
-    qty: 17,
-    pnlRupees: 1054.00,
-    pnlPct: 2.13,
-    reason: "⚡ 1-Day BTST Morning Target Hit (+2.13%)"
-  },
-  {
-    id: "j_3",
-    date: "2026-10-21",
-    symbol: "RELIANCE",
-    mode: "swing",
-    holdingDays: "4 Days",
-    entryPrice: 2890.00,
-    exitPrice: 3015.00,
-    qty: 16,
-    pnlRupees: 2000.00,
-    pnlPct: 4.32,
-    reason: "🎯 Target Hit (+4.32%)"
-  },
-  {
-    id: "j_4",
-    date: "2026-10-18",
-    symbol: "SBIN",
-    mode: "swing",
-    holdingDays: "2 Days",
-    entryPrice: 820.00,
-    exitPrice: 805.00,
-    qty: 48,
-    pnlRupees: -720.00,
-    pnlPct: -1.83,
-    reason: "🛑 Stop Loss Hit (-1.83%)"
-  },
-  {
-    id: "j_5",
-    date: "2026-10-14",
-    symbol: "INFY",
-    mode: "swing",
-    holdingDays: "3 Days",
-    entryPrice: 1820.00,
-    exitPrice: 1895.00,
-    qty: 24,
-    pnlRupees: 1800.00,
-    pnlPct: 4.12,
-    reason: "🎯 Target Hit (+4.12%)"
-  }
-];
+const INITIAL_JOURNAL = [];
 
 // App State
 const AppState = {
@@ -1373,9 +1291,35 @@ function renderHomeView() {
   document.getElementById('stat-equity').textContent = `₹${totalEquity.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
   document.getElementById('stat-open-count').textContent = `${AppState.openPositions.length} Stocks`;
 
+  const equityTrendEl = document.getElementById('stat-equity-trend');
+  if (equityTrendEl) {
+    if (AppState.tradeJournal.length === 0 && AppState.openPositions.length === 0) {
+      equityTrendEl.textContent = '₹0 Profit (Ready to Start)';
+      equityTrendEl.className = 'stat-trend';
+    } else {
+      const pnlPct = ((totalEquity - 100000) / 100000) * 100;
+      equityTrendEl.textContent = `${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}% Total Return`;
+      equityTrendEl.className = `stat-trend ${pnlPct >= 0 ? 'up' : 'down'}`;
+    }
+  }
+
   const winningTrades = AppState.tradeJournal.filter(j => j.pnlRupees > 0).length;
   const winRate = AppState.tradeJournal.length > 0 ? ((winningTrades / AppState.tradeJournal.length) * 100).toFixed(1) : 0;
   document.getElementById('stat-winrate').textContent = `${winRate}%`;
+
+  const winrateTrendEl = document.getElementById('stat-winrate-trend');
+  if (winrateTrendEl) {
+    if (AppState.tradeJournal.length === 0) {
+      winrateTrendEl.textContent = '0 Closed Trades';
+    } else {
+      winrateTrendEl.textContent = `${winningTrades} Wins out of ${AppState.tradeJournal.length}`;
+    }
+  }
+
+  const openTrendEl = document.getElementById('stat-open-trend');
+  if (openTrendEl) {
+    openTrendEl.textContent = AppState.openPositions.length === 0 ? 'No Active Holdings' : 'Waiting for Target';
+  }
 
   renderOpenPositionsList();
 }
@@ -1387,8 +1331,13 @@ function renderOpenPositionsList() {
 
   if (AppState.openPositions.length === 0) {
     container.innerHTML = `
-      <div class="card" style="text-align: center; color: var(--text-dim); padding: 2rem;">
-        No active paper positions right now. Tap "Record in Paper Portfolio" on a suggested stock to start.
+      <div class="card" style="text-align: center; color: var(--text-dim); padding: 2rem 1.25rem;">
+        <div style="font-size: 1.75rem; margin-bottom: 0.5rem;">🌱</div>
+        <div style="font-weight: 600; font-size: 1rem; color: var(--text-main); margin-bottom: 0.35rem;">No Active Paper Positions</div>
+        <div style="font-size: 0.82rem; margin-bottom: 1rem; max-width: 440px; margin-left: auto; margin-right: auto; line-height: 1.45;">
+          Your paper portfolio is fresh and clean. When you find a 4-Check passed stock on the Scanner screen, tap <strong>"Take Paper Trade"</strong> to test it risk-free.
+        </div>
+        <button class="btn btn-primary" style="padding: 0.55rem 1.2rem; font-size: 0.85rem;" onclick="switchView('scanner')">🔍 Find Today's Best Stock</button>
       </div>
     `;
     return;
@@ -1911,8 +1860,25 @@ function renderPortfolioView() {
 
   const totalGains = winningTrades.reduce((acc, j) => acc + j.pnlRupees, 0);
   const totalLosses = Math.abs(journal.filter(j => j.pnlRupees < 0).reduce((acc, j) => acc + j.pnlRupees, 0));
-  const profitFactor = totalLosses > 0 ? (totalGains / totalLosses).toFixed(2) : "Infinite";
+  let profitFactor = "0.00";
+  if (totalLosses > 0) {
+    profitFactor = (totalGains / totalLosses).toFixed(2);
+  } else if (totalGains > 0) {
+    profitFactor = "Infinite";
+  }
   document.getElementById('journal-profit-factor').textContent = profitFactor;
+
+  const netTrendEl = document.getElementById('journal-net-trend');
+  if (netTrendEl) {
+    if (journal.length === 0) {
+      netTrendEl.textContent = 'Ready to Start';
+      netTrendEl.className = 'stat-trend';
+    } else {
+      const gainPct = ((totalNetProfit / 100000) * 100).toFixed(2);
+      netTrendEl.textContent = `${gainPct >= 0 ? '+' : ''}${gainPct}% Total Gain`;
+      netTrendEl.className = `stat-trend ${gainPct >= 0 ? 'up' : 'down'}`;
+    }
+  }
 
   // Update Monthly Goal Thermometer
   const monthlyGoal = AppState.monthlyGoal || 15000;
@@ -1923,6 +1889,29 @@ function renderPortfolioView() {
   if (goalProgressEl) {
     goalProgressEl.textContent = `${totalNetProfit >= 0 ? '+' : ''}₹${totalNetProfit.toLocaleString('en-IN')} Pocketed (${goalPct}%)`;
     goalProgressEl.style.color = totalNetProfit >= 0 ? 'var(--profit)' : 'var(--loss)';
+  }
+
+  const everydayEl = document.getElementById('goal-everyday-value');
+  if (everydayEl) {
+    if (totalNetProfit <= 0) {
+      everydayEl.innerHTML = '💡 <strong>Ready for Practice:</strong> Your first trade will start recording profits and milestones towards your ₹15,000 monthly goal.';
+    } else {
+      const days = Math.max(1, Math.round(totalNetProfit / 600));
+      everydayEl.innerHTML = `💡 <strong>Everyday Value:</strong> Your pocketed profit (+₹${totalNetProfit.toLocaleString('en-IN')}) covers <strong>~${days} days of household grocery and electricity bills</strong>!`;
+    }
+  }
+
+  if (journal.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 2.5rem 1rem; color: var(--text-dim);">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📖</div>
+          <div style="font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem;">No Closed Trades in Diary Yet</div>
+          <div style="font-size: 0.8rem;">When you close or exit a paper trade, the profit, holding period, and lesson will automatically appear here.</div>
+        </td>
+      </tr>
+    `;
+    return;
   }
 
   tbody.innerHTML = journal.map(trade => {

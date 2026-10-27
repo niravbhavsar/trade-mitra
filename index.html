@@ -135,22 +135,22 @@
         <div class="stat-card">
           <div class="stat-label">Practice Cash in Hand</div>
           <div class="stat-value" id="stat-cash">₹1,00,000</div>
-          <div class="stat-trend up">Safe in Wallet</div>
+          <div class="stat-trend up" id="stat-cash-trend">Safe in Wallet</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Total Account Worth</div>
-          <div class="stat-value" id="stat-equity">₹1,06,420</div>
-          <div class="stat-trend up">+6.42% Total Profit</div>
+          <div class="stat-value" id="stat-equity">₹1,00,000</div>
+          <div class="stat-trend" id="stat-equity-trend">₹0 Profit (Ready to Start)</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Success Rate (Last 30 Days)</div>
-          <div class="stat-value" id="stat-winrate" style="color: var(--profit);">81.8%</div>
-          <div class="stat-trend up">9 Wins out of 11</div>
+          <div class="stat-value" id="stat-winrate" style="color: var(--profit);">0%</div>
+          <div class="stat-trend" id="stat-winrate-trend">0 Closed Trades</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Stocks You Are Holding</div>
-          <div class="stat-value" id="stat-open-count">2 Stocks</div>
-          <div class="stat-trend" style="color: var(--primary);">Waiting for Target</div>
+          <div class="stat-value" id="stat-open-count">0 Stocks</div>
+          <div class="stat-trend" id="stat-open-trend">No Active Holdings</div>
         </div>
       </div>
 
@@ -335,7 +335,7 @@
       <div class="card" style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(16, 185, 129, 0.08)), var(--bg-surface); border: 1px solid rgba(14, 165, 233, 0.3);">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
           <h2 style="font-size: 1.1rem; font-weight: 700;">2–3 Month Trial Evaluation Diary</h2>
-          <span class="badge badge-buy">Day 24 of 90</span>
+          <span class="badge badge-buy" id="trial-day-badge">Day 1 of 90</span>
         </div>
         <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">
           Test this strategy with zero risk using practice money for 2–3 months. Verify your win rate before putting real savings at risk.
@@ -345,36 +345,36 @@
         <div class="goal-meter-container">
           <div style="display: flex; justify-content: space-between; font-size: 0.82rem;">
             <span>🎯 Monthly Extra Income Goal: <strong>₹15,000 / Month</strong></span>
-            <span style="color: var(--profit); font-weight: 700;" id="goal-progress-text">₹6,420 Pocketed (42.8%)</span>
+            <span style="color: var(--profit); font-weight: 700;" id="goal-progress-text">₹0 Pocketed (0.0%)</span>
           </div>
           <div class="goal-meter-track">
-            <div class="goal-meter-fill" id="goal-meter-fill" style="width: 42.8%;"></div>
+            <div class="goal-meter-fill" id="goal-meter-fill" style="width: 0%;"></div>
           </div>
-          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
-            💡 <strong>Everyday Value:</strong> Your pocketed profit (+₹6,420) covers <strong>~10 days of household grocery and electricity bills</strong>!
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;" id="goal-everyday-value">
+            💡 <strong>Ready for Practice:</strong> Your first trade will start recording profits and milestones towards your ₹15,000 monthly goal.
           </div>
         </div>
 
         <div class="stats-grid" style="margin-top: 1rem; margin-bottom: 0;">
           <div class="stat-card">
             <div class="stat-label">Practice Trades Taken</div>
-            <div class="stat-value" id="journal-trade-count">11 Trades</div>
+            <div class="stat-value" id="journal-trade-count">0 Trades</div>
             <div class="stat-trend up">Goal: 25+ Trades</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Observed Win Rate</div>
-            <div class="stat-value profit" id="journal-win-rate">81.8%</div>
+            <div class="stat-value profit" id="journal-win-rate">0%</div>
             <div class="stat-trend up">Target: &gt;70%</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Net Profit Pocketed</div>
-            <div class="stat-value profit" id="journal-net-profit">+₹6,420</div>
-            <div class="stat-trend up">+6.42% Total Gain</div>
+            <div class="stat-value profit" id="journal-net-profit">₹0</div>
+            <div class="stat-trend" id="journal-net-trend">Ready to Start</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Profit-to-Loss Ratio</div>
-            <div class="stat-value" id="journal-profit-factor">3.45</div>
-            <div class="stat-trend up">Very Safe</div>
+            <div class="stat-value" id="journal-profit-factor">0.00</div>
+            <div class="stat-trend">No Trades Yet</div>
           </div>
         </div>
       </div>
