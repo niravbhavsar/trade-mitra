@@ -1,4 +1,4 @@
-# Market - Nirav
+# Market
 
 This repository contains the Phase 0 starter for the Indian stock market research and paper-trading application.
 
