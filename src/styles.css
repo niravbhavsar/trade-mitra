@@ -5,8 +5,15 @@
 :root {
   color-scheme: light;
   font-family: Inter, 'Segoe UI', sans-serif;
-  background: #f5f7fb;
+  background: #edf1f5;
   color: #111827;
+  --page-bg: #edf1f5;
+  --panel-bg: rgba(255, 255, 255, 0.72);
+  --navy: #081f33;
+  --navy-soft: #0d233e;
+  --text: #0f172a;
+  --muted: #667085;
+  --line: rgba(148, 163, 184, 0.28);
 }
 
 html {
@@ -16,11 +23,94 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  background: var(--page-bg);
+  color: var(--text);
 }
 
 #app {
   min-height: 100vh;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--page-bg);
+}
+
+.drawer-content {
+  background: var(--page-bg);
+}
+
+.navbar {
+  height: 56px;
+  min-height: 56px;
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.dashboard-hero {
+  width: min(76%, 1180px);
+  height: 112px;
+  margin: 34px auto 0;
+  border-radius: 34px;
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-soft) 100%);
+  box-shadow: inset 0 -8px 0 rgba(255, 255, 255, 0.02);
+}
+
+main .mx-auto {
+  max-width: 1320px;
+}
+
+.dashboard-layout {
+  margin-top: 0;
+}
+
+.market-sidebar {
+  background: transparent;
+  border: 0;
+  padding-top: 0.5rem;
+  box-shadow: none;
+}
+
+.market-sidebar h2 {
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+}
+
+.market-sidebar p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.market-sidebar .menu {
+  padding: 0;
+}
+
+.market-sidebar .menu li {
+  margin: 0;
+}
+
+.market-sidebar .menu li a {
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 1rem;
+  line-height: 1.4;
+  font-weight: 500;
+  color: #334155;
+  background: transparent;
+  border: 0;
+}
+
+.market-sidebar .menu li a.active {
+  background: transparent !important;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.market-sidebar .menu li a:hover {
+  background: rgba(148, 163, 184, 0.08);
 }
 
 .table th,
@@ -36,5 +126,11 @@ body {
 @media (max-width: 1023px) {
   .drawer-side {
     position: fixed;
+  }
+
+  .dashboard-hero {
+    width: min(82%, 900px);
+    height: 94px;
+    margin-top: 28px;
   }
 }
