@@ -918,8 +918,8 @@ const AppState = {
   enteredPin: '',
   isLocked: true, // MANDATORY LOCK ON STARTUP
   autoLockMinutes: 5,
-  telegramToken: '',
-  telegramChatId: '',
+  telegramToken: '9096591513:AAHqSOhzaL_DbZ_O-34FQy0cUQDejSuj4xk',
+  telegramChatId: '6900686320',
   inactivityTimer: null
 };
 
@@ -1078,7 +1078,8 @@ async function sendTelegramMessage(token, chatId, messageHtml) {
     body: JSON.stringify({
       chat_id: cleanChatId,
       text: messageHtml,
-      parse_mode: 'HTML'
+      parse_mode: 'HTML',
+      disable_notification: false
     })
   });
 
@@ -2114,15 +2115,19 @@ document.addEventListener('DOMContentLoaded', () => {
       testTgBtn.textContent = "Sending Test Alert...";
 
       try {
-        const testMsg = `🚀 <b>TradeMitra Live Alert Test</b>\n\n` +
+        const alertId = Math.floor(100 + Math.random() * 900);
+        const nowTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const testMsg = `🚀 <b>TradeMitra Live Alert Test #${alertId}</b>\n\n` +
           `✅ <b>Connected Successfully!</b>\n` +
-          `Your Telegram alerts are now configured.\n\n` +
-          `⏰ <i>You will receive 3:15 PM Daily Action Alerts and Target Profit notifications right here.</i>\n\n` +
+          `Your Telegram alerts are fully active.\n\n` +
+          `⏰ <b>Dispatched At:</b> ${nowTime}\n` +
+          `👤 <b>Recipient ID:</b> <code>${chatId}</code>\n` +
+          `🔔 <i>You will receive 3:15 PM Daily Action Alerts and Target Profit notifications right here.</i>\n\n` +
           `📊 <i>Mode: 1-Day BTST & 2-5 Day Swing</i>`;
 
         await sendTelegramMessage(token, chatId, testMsg);
 
-        showToast("✅ Telegram test alert delivered successfully! Check your Telegram app.", "success", 4500);
+        showToast(`✅ Telegram alert #${alertId} delivered to your phone!`, "success", 4500);
       } catch (err) {
         console.error("Telegram send error:", err);
         showCustomAlert(

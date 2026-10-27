@@ -45,8 +45,8 @@ def run_daily_scan():
     print("Market-Nirav: Commencing Daily 10-Yr Validated Swing Scan...")
     print("=" * 60)
 
-    telegram_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-    telegram_chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
+    telegram_token = os.environ.get("TELEGRAM_BOT_TOKEN", "9096591513:AAHqSOhzaL_DbZ_O-34FQy0cUQDejSuj4xk")
+    telegram_chat_id = os.environ.get("TELEGRAM_CHAT_ID", "6900686320")
 
     qualifying_setups = []
 
