@@ -98,13 +98,14 @@ Setting this up takes **less than 60 seconds**:
 5. Choose a username that ends in "bot" (example: `my_trademitra_bot`).
 6. BotFather will reply with an **HTTP API Token** (looks like: `7123456789:AAHk...`).
 7. Copy that token and paste it into TradeMitra **Settings -> Telegram Bot Token**.
+8. **VERY IMPORTANT:** Open your newly created bot in Telegram (search for your bot's username or tap the link BotFather gave you) and tap **START** (or send `/start`). *Telegram blocks all bots from messaging you until you tap Start first!*
 
 ### Step B: Get your Telegram Chat ID
 1. In the Telegram search bar, search for `@userinfobot` and open the chat.
 2. Tap **Start**.
 3. The bot will immediately reply with your personal **Id** (a 9 or 10 digit number like `987654321`).
 4. Copy that number and paste it into TradeMitra **Settings -> Telegram Chat ID**.
-5. Tap **Save Telegram Config** and then tap **Send Test Alert**.
+5. Tap **Save Telegram Config** and then tap **Send Test Alert**. You will instantly receive a live test alert!
 
 ---
 

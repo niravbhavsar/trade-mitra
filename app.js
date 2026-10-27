@@ -615,8 +615,179 @@ const AppState = {
 };
 
 // ==========================================================================
-// 3. Navigation & Mode Controllers
+// 3. Custom Popup / In-App Notification System & Telegram Engine
 // ==========================================================================
+function showToast(message, type = 'success', duration = 3500) {
+  const container = document.getElementById('tm-toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `tm-toast ${type}`;
+
+  let iconSvg = '';
+  if (type === 'success') {
+    iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+  } else if (type === 'error') {
+    iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+  } else if (type === 'warning') {
+    iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+  } else {
+    iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+  }
+
+  toast.innerHTML = `
+    <div class="tm-toast-icon">${iconSvg}</div>
+    <div class="tm-toast-msg">${message}</div>
+    <button class="tm-toast-close" title="Close">&times;</button>
+  `;
+
+  const closeBtn = toast.querySelector('.tm-toast-close');
+  const dismiss = () => {
+    toast.classList.add('toast-hiding');
+    setTimeout(() => {
+      if (toast.parentNode) toast.remove();
+    }, 250);
+  };
+  closeBtn.addEventListener('click', dismiss);
+
+  container.appendChild(toast);
+  setTimeout(dismiss, duration);
+}
+
+function showCustomAlert(message, title = 'TradeMitra', type = 'info') {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('modal-custom-dialog');
+    const titleEl = document.getElementById('dialog-title');
+    const msgEl = document.getElementById('dialog-message');
+    const iconBox = document.getElementById('dialog-icon-box');
+    const cancelBtn = document.getElementById('btn-dialog-cancel');
+    const confirmBtn = document.getElementById('btn-dialog-confirm');
+
+    if (!modal) {
+      showToast(message, type);
+      resolve(true);
+      return;
+    }
+
+    titleEl.textContent = title;
+    msgEl.innerHTML = message.replace(/\n/g, '<br>');
+    iconBox.className = `custom-dialog-icon-box ${type}`;
+
+    let iconSvg = '';
+    if (type === 'success') {
+      iconSvg = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+    } else if (type === 'error') {
+      iconSvg = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+    } else if (type === 'warning') {
+      iconSvg = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+    } else {
+      iconSvg = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+    }
+    iconBox.innerHTML = iconSvg;
+
+    cancelBtn.style.display = 'none';
+    confirmBtn.textContent = 'OK';
+    confirmBtn.className = 'btn btn-primary';
+
+    const onConfirm = () => {
+      confirmBtn.removeEventListener('click', onConfirm);
+      modal.classList.remove('active');
+      resolve(true);
+    };
+    confirmBtn.addEventListener('click', onConfirm);
+
+    modal.classList.add('active');
+  });
+}
+
+function showCustomConfirm(message, title = 'Please Confirm', confirmText = 'Confirm', cancelText = 'Cancel', type = 'warning') {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('modal-custom-dialog');
+    const titleEl = document.getElementById('dialog-title');
+    const msgEl = document.getElementById('dialog-message');
+    const iconBox = document.getElementById('dialog-icon-box');
+    const cancelBtn = document.getElementById('btn-dialog-cancel');
+    const confirmBtn = document.getElementById('btn-dialog-confirm');
+
+    if (!modal) {
+      const fallback = window.confirm(message);
+      resolve(fallback);
+      return;
+    }
+
+    titleEl.textContent = title;
+    msgEl.innerHTML = message.replace(/\n/g, '<br>');
+    iconBox.className = `custom-dialog-icon-box ${type}`;
+
+    iconBox.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+
+    cancelBtn.style.display = 'inline-block';
+    cancelBtn.textContent = cancelText;
+    confirmBtn.textContent = confirmText;
+    confirmBtn.className = 'btn btn-primary';
+
+    const cleanUp = () => {
+      cancelBtn.removeEventListener('click', onCancel);
+      confirmBtn.removeEventListener('click', onConfirm);
+      modal.classList.remove('active');
+    };
+
+    const onConfirm = () => {
+      cleanUp();
+      resolve(true);
+    };
+
+    const onCancel = () => {
+      cleanUp();
+      resolve(false);
+    };
+
+    confirmBtn.addEventListener('click', onConfirm);
+    cancelBtn.addEventListener('click', onCancel);
+
+    modal.classList.add('active');
+  });
+}
+
+// Seamlessly route any legacy alert to sleek custom toast
+window.alert = function(msg) {
+  showToast(String(msg), 'info', 3500);
+};
+
+// Telegram Dispatch Engine
+async function sendTelegramMessage(token, chatId, messageHtml) {
+  if (!token || !chatId) {
+    throw new Error("Missing Telegram Bot Token or Chat ID.");
+  }
+  const cleanToken = token.trim();
+  const cleanChatId = chatId.trim();
+
+  const url = `https://api.telegram.org/bot${cleanToken}/sendMessage`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: cleanChatId,
+      text: messageHtml,
+      parse_mode: 'HTML'
+    })
+  });
+
+  const data = await response.json();
+  if (!data.ok) {
+    if (data.error_code === 400 && data.description && data.description.includes('chat not found')) {
+      throw new Error(`Chat not found. Did you open your bot in Telegram and tap START? Telegram bots cannot send messages to you until you send /start first.`);
+    } else if (data.error_code === 401 || data.error_code === 404) {
+      throw new Error(`Invalid Bot Token. Please check the token provided by @BotFather.`);
+    } else if (data.error_code === 403) {
+      throw new Error(`Bot is blocked or not started. Please open your bot in Telegram and tap START.`);
+    } else {
+      throw new Error(data.description || "Telegram API rejected the message.");
+    }
+  }
+  return data;
+}
+
 function setThemeMode(theme, save = true) {
   AppState.theme = theme;
   const icon = document.getElementById('theme-btn-icon');
@@ -652,12 +823,12 @@ function togglePinVisibility() {
 function saveMasterPin() {
   const newPin = document.getElementById('setting-pin').value.trim();
   if (!newPin || newPin.length !== 4 || isNaN(newPin)) {
-    alert("Please enter a valid 4-digit numeric PIN.");
+    showCustomAlert("Please enter a valid 4-digit numeric PIN.", "Invalid PIN", "warning");
     return;
   }
   AppState.pin = newPin;
   DB.saveState();
-  alert(`✅ Master PIN successfully updated to ${newPin}! You will use this PIN to log in.`);
+  showToast(`✅ Master PIN updated to ${newPin}! Use this PIN to log in.`, "success", 4000);
 }
 
 function toggleManualMoodPanel() {
@@ -1254,7 +1425,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!isNaN(cash) && cash > 0) AppState.virtualCash = cash;
       if (!isNaN(risk) && risk > 0) AppState.riskPct = risk;
       DB.saveState();
-      alert("Capital preferences saved successfully!");
+      showToast("✅ Capital preferences saved successfully!", "success");
       switchView('home');
     });
   }
@@ -1278,7 +1449,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       await DB.initFirebase();
       await DB.saveState();
-      alert("✅ Firebase credentials saved! Connected to " + DB.firebaseConfig.projectId);
+      showToast("✅ Firebase credentials saved! Connected to " + DB.firebaseConfig.projectId, "success");
     });
   }
 
@@ -1287,7 +1458,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (forceSyncBtn) {
     forceSyncBtn.addEventListener('click', async () => {
       await DB.saveState();
-      alert("Cloud database sync complete!");
+      showToast("☁️ Cloud database sync complete!", "success");
     });
   }
 
@@ -1300,6 +1471,7 @@ document.addEventListener('DOMContentLoaded', () => {
       dlAnchor.setAttribute("href", dataStr);
       dlAnchor.setAttribute("download", `market-nirav-backup-${new Date().toISOString().slice(0, 10)}.json`);
       dlAnchor.click();
+      showToast("💾 Backup JSON file downloaded!", "info");
     });
   }
 
@@ -1316,10 +1488,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           const parsed = JSON.parse(event.target.result);
           applyIncomingState(parsed, true);
-          alert("Database successfully restored from JSON backup!");
+          showToast("✅ Database successfully restored from JSON backup!", "success");
           switchView('home');
         } catch (err) {
-          alert("Invalid backup file: " + err.message);
+          showCustomAlert("Invalid backup file: " + err.message, "Restore Failed", "error");
         }
       };
       reader.readAsText(file);
@@ -1340,20 +1512,28 @@ document.addEventListener('DOMContentLoaded', () => {
       a.setAttribute('href', url);
       a.setAttribute('download', `market-nirav-journal-${new Date().toISOString().slice(0, 10)}.csv`);
       a.click();
+      showToast("📥 Exported Trade Diary CSV!", "info");
     });
   }
 
   // Reset Portfolio
   const resetBtn = document.getElementById('btn-reset-portfolio');
   if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      if (confirm("Reset paper trading portfolio and clear trial history back to ₹1,00,000 cash?")) {
+    resetBtn.addEventListener('click', async () => {
+      const confirmed = await showCustomConfirm(
+        "Reset your paper trading portfolio and clear your practice history back to ₹1,00,000 cash?",
+        "Reset Practice Portfolio",
+        "Yes, Reset",
+        "Cancel",
+        "warning"
+      );
+      if (confirmed) {
         AppState.virtualCash = 100000.00;
         AppState.openPositions = [];
         AppState.tradeJournal = [];
         DB.saveState();
         renderPortfolioView();
-        alert("Portfolio reset to ₹1,00,000 cash.");
+        showToast("Portfolio reset to ₹1,00,000 cash.", "info");
       }
     });
   }
@@ -1362,10 +1542,59 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveTgBtn = document.getElementById('btn-save-telegram');
   if (saveTgBtn) {
     saveTgBtn.addEventListener('click', () => {
-      AppState.telegramToken = document.getElementById('setting-tg-token').value.trim();
-      AppState.telegramChatId = document.getElementById('setting-tg-chatid').value.trim();
+      const token = document.getElementById('setting-tg-token').value.trim();
+      const chatId = document.getElementById('setting-tg-chatid').value.trim();
+      AppState.telegramToken = token;
+      AppState.telegramChatId = chatId;
       DB.saveState();
-      alert("Telegram alert settings saved!");
+      showToast("✅ Telegram credentials saved!", "success");
+    });
+  }
+
+  // Send Test Alert to Telegram
+  const testTgBtn = document.getElementById('btn-test-telegram');
+  if (testTgBtn) {
+    testTgBtn.addEventListener('click', async () => {
+      const token = document.getElementById('setting-tg-token').value.trim();
+      const chatId = document.getElementById('setting-tg-chatid').value.trim();
+
+      if (!token || !chatId) {
+        showCustomAlert(
+          "Please enter both your Telegram Bot Token and Chat ID before sending a test alert.",
+          "Missing Telegram Settings",
+          "warning"
+        );
+        return;
+      }
+
+      AppState.telegramToken = token;
+      AppState.telegramChatId = chatId;
+      DB.saveState();
+
+      testTgBtn.disabled = true;
+      testTgBtn.textContent = "Sending Test Alert...";
+
+      try {
+        const testMsg = `🚀 <b>TradeMitra Live Alert Test</b>\n\n` +
+          `✅ <b>Connected Successfully!</b>\n` +
+          `Your Telegram alerts are now configured.\n\n` +
+          `⏰ <i>You will receive 3:15 PM Daily Action Alerts and Target Profit notifications right here.</i>\n\n` +
+          `📊 <i>Mode: 1-Day BTST & 2-5 Day Swing</i>`;
+
+        await sendTelegramMessage(token, chatId, testMsg);
+
+        showToast("✅ Telegram test alert delivered successfully! Check your Telegram app.", "success", 4500);
+      } catch (err) {
+        console.error("Telegram send error:", err);
+        showCustomAlert(
+          `Could not send Telegram message:\n\n<b>${err.message}</b>\n\n💡 <b>IMPORTANT:</b> Open Telegram on your phone, search for your bot, and tap <b>START</b>. Telegram blocks bots from messaging anyone who hasn't clicked Start first!`,
+          "Telegram Notification Failed",
+          "error"
+        );
+      } finally {
+        testTgBtn.disabled = false;
+        testTgBtn.textContent = "Send Test Alert";
+      }
     });
   }
 });
@@ -1416,7 +1645,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const cost = qty * stock.cmp;
 
       if (cost > AppState.virtualCash) {
-        alert("Insufficient virtual cash balance for this order quantity.");
+        showCustomAlert("Insufficient virtual cash balance for this order quantity.", "Insufficient Capital", "warning");
         return;
       }
 
@@ -1441,40 +1670,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
       DB.saveState();
       document.getElementById('modal-paper-buy').classList.remove('active');
-      alert(`✅ Executed Paper Buy: ${qty} shares of ${stock.symbol} (${is1Day ? '1-Day BTST' : '2-5D Swing'}) recorded!`);
+      showToast(`✅ Executed Paper Buy: ${qty} shares of ${stock.symbol}!`, "success", 4000);
       switchView('home');
     });
   }
 });
 
-function closePaperTrade(positionId) {
+async function closePaperTrade(positionId) {
   const index = AppState.openPositions.findIndex(p => p.id === positionId);
   if (index === -1) return;
 
   const pos = AppState.openPositions[index];
-  if (confirm(`Exit paper position for ${pos.symbol} at CMP ₹${pos.currentPrice.toFixed(0)}?`)) {
-    const returnCash = pos.qty * pos.currentPrice;
-    AppState.virtualCash += returnCash;
+  const confirmed = await showCustomConfirm(
+    `Exit paper position for <b>${pos.symbol}</b> at Current Price <b>₹${pos.currentPrice.toFixed(0)}</b>?<br><br>Estimated Net P&L: <strong style="color:${pos.currentPnl >= 0 ? 'var(--profit)' : 'var(--loss)'}">${pos.currentPnl >= 0 ? '+' : ''}₹${pos.currentPnl.toFixed(0)} (${pos.pnlPct.toFixed(2)}%)</strong>`,
+    "Confirm Position Exit",
+    "Exit Position",
+    "Keep Position",
+    pos.currentPnl >= 0 ? "success" : "warning"
+  );
+  if (!confirmed) return;
 
-    AppState.tradeJournal.unshift({
-      id: `j_${Date.now()}`,
-      date: new Date().toISOString().slice(0, 10),
-      symbol: pos.symbol,
-      mode: pos.mode || 'swing',
-      holdingDays: pos.mode === '1day' ? "1 Day (BTST)" : `${pos.holdDay} Days`,
-      entryPrice: pos.entryPrice,
-      exitPrice: pos.currentPrice,
-      qty: pos.qty,
-      pnlRupees: pos.currentPnl,
-      pnlPct: pos.pnlPct,
-      reason: pos.currentPnl >= 0 ? "🎯 Target Profit Exit" : "🛑 Safety Exit"
-    });
+  const returnCash = pos.qty * pos.currentPrice;
+  AppState.virtualCash += returnCash;
 
-    AppState.openPositions.splice(index, 1);
-    DB.saveState();
-    renderHomeView();
-    alert(`Position closed. Virtual cash updated to ₹${AppState.virtualCash.toLocaleString('en-IN')}`);
-  }
+  AppState.tradeJournal.unshift({
+    id: `j_${Date.now()}`,
+    date: new Date().toISOString().slice(0, 10),
+    symbol: pos.symbol,
+    mode: pos.mode || 'swing',
+    holdingDays: pos.mode === '1day' ? "1 Day (BTST)" : `${pos.holdDay} Days`,
+    entryPrice: pos.entryPrice,
+    exitPrice: pos.currentPrice,
+    qty: pos.qty,
+    pnlRupees: pos.currentPnl,
+    pnlPct: pos.pnlPct,
+    reason: pos.currentPnl >= 0 ? "🎯 Target Profit Exit" : "🛑 Safety Exit"
+  });
+
+  AppState.openPositions.splice(index, 1);
+  DB.saveState();
+  renderHomeView();
+  showToast(`✅ Closed ${pos.symbol}. Cash updated to ₹${AppState.virtualCash.toLocaleString('en-IN')}`, "success");
 }
 
 // ==========================================================================

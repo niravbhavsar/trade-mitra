@@ -452,6 +452,9 @@
           <strong style="color: var(--primary); display: block; margin-bottom: 4px; font-size: 0.82rem;">ℹ️ Where to get your Telegram Bot Token &amp; Chat ID (Takes 60 seconds):</strong>
           <div>1. Open Telegram on your phone and search for <strong>@BotFather</strong>. Send <code>/newbot</code>, type a name (e.g. <em>MyTradeAlertsBot</em>), and copy the long <strong>HTTP API Token</strong> into the box below.</div>
           <div style="margin-top: 4px;">2. Search for <strong>@userinfobot</strong> on Telegram and tap Start. It will immediately show your numeric <strong>Id</strong> (e.g. <em>987654321</em>). Copy it into Chat ID.</div>
+          <div style="margin-top: 6px; padding: 4px 8px; background: rgba(245, 158, 11, 0.12); border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.3); color: #f59e0b;">
+            ⚠️ <strong>CRITICAL:</strong> After creating your bot, open the chat with your new bot in Telegram and tap <strong>START</strong>. Telegram blocks all bots from messaging you until you have tapped Start first!
+          </div>
         </div>
 
         <div class="form-group">
@@ -695,6 +698,26 @@
       <p style="font-size: 0.72rem; color: var(--text-dim); margin-top: 1rem;">Default Master PIN: <strong>5189</strong></p>
     </div>
   </div>
+
+  <!-- ========================================================
+       MODAL 3: CUSTOM POPUP / DIALOG & CONFIRMATION
+       ======================================================== -->
+  <div class="modal-overlay" id="modal-custom-dialog">
+    <div class="modal-content custom-dialog-content">
+      <div class="custom-dialog-icon-box" id="dialog-icon-box">
+        <!-- Injected dynamically -->
+      </div>
+      <h3 class="custom-dialog-title" id="dialog-title">Notice</h3>
+      <div class="custom-dialog-message" id="dialog-message">Message text</div>
+      <div class="custom-dialog-actions" id="dialog-actions">
+        <button class="btn btn-outline" id="btn-dialog-cancel" style="display: none;">Cancel</button>
+        <button class="btn btn-primary" id="btn-dialog-confirm">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container for In-App Notification Alerts -->
+  <div class="tm-toast-container" id="tm-toast-container"></div>
 
   <!-- Firebase Cloud Firestore SDK (Compat for zero-build static web) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
