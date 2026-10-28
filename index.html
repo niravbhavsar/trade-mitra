@@ -20,10 +20,14 @@
     <div class="brand-group">
       <div class="brand-logo" style="background: linear-gradient(135deg, #0ea5e9, #10b981);">TM</div>
       <div class="brand-info">
-        <h1>TradeMitra <span class="brand-tag">DAILY PROFIT</span></h1>
+        <div style="display: flex; align-items: center; gap: 7px; flex-wrap: wrap;">
+          <h1>TradeMitra</h1>
+          <div class="header-live-pill" id="header-live-indicator" title="Stock prices auto-update every 5 seconds">
+            <span class="live-dot"></span> LIVE 5s
+          </div>
+        </div>
         <div class="sync-status" id="cloud-sync-status">
           <span class="sync-dot"></span> Saved Online
-          <span class="live-ticker-badge" style="margin-left: 6px;"><span class="live-dot"></span> LIVE 5s</span>
         </div>
       </div>
     </div>
@@ -39,6 +43,11 @@
 
     <!-- Header Actions -->
     <div class="header-actions">
+      <!-- Manual Live Price Fetch Button -->
+      <button class="header-action-btn header-refresh-btn" id="header-fetch-price-btn" title="Fetch Current Stock Prices Now" onclick="triggerManualPriceFetch()">
+        <span id="header-refresh-icon">↻</span>
+        <span class="header-refresh-label">Live Price</span>
+      </button>
       <button class="header-icon-btn" id="header-theme-btn" title="Toggle Light / Dark Theme">
         <span id="theme-btn-icon">☀️</span>
       </button>
@@ -48,7 +57,7 @@
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
       </button>
-      <button class="header-icon-btn" id="header-telegram-btn" title="Telegram Alerts">
+      <button class="header-icon-btn" id="header-telegram-btn" title="Send Alert to Telegram">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="22" y1="2" x2="11" y2="13"></line>
           <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>

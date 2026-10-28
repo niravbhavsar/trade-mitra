@@ -252,15 +252,15 @@ function updateCloudStatusBadge(isOnline) {
   const badge1 = document.getElementById('cloud-sync-status');
   const badge2 = document.getElementById('db-status-badge');
   if (isOnline) {
-    if (badge1) badge1.innerHTML = `<span class="sync-dot"></span> Cloud Synced (Firestore)`;
+    if (badge1) badge1.innerHTML = `<span class="sync-dot"></span> Saved Online`;
     if (badge2) {
       badge2.textContent = "🟢 Synced (Firestore Cloud)";
       badge2.style.color = "var(--profit)";
     }
   } else {
-    if (badge1) badge1.innerHTML = `<span class="sync-dot" style="background:#0ea5e9; box-shadow:0 0 6px #0ea5e9;"></span> Local DB (IndexedDB)`;
+    if (badge1) badge1.innerHTML = `<span class="sync-dot" style="background:#0ea5e9; box-shadow:0 0 6px #0ea5e9;"></span> Saved on Phone`;
     if (badge2) {
-      badge2.textContent = "🔵 Local IndexedDB (Active)";
+      badge2.textContent = "🔵 Saved on Phone (IndexedDB)";
       badge2.style.color = "var(--primary)";
     }
   }
@@ -363,18 +363,18 @@ const GOOD_MARKET_STOCKS = [
     change: -0.67,
     setup: "BUY",
     regime: "GOOD",
-    swingEntryMin: 1372.00,
-    swingEntryMax: 1384.00,
-    swingTarget: 1440.00,
+    swingEntryMin: 1372.09,
+    swingEntryMax: 1383.11,
+    swingTarget: 1440.01,
     swingTargetGainPct: 4.53,
-    swingStopLoss: 1348.00,
+    swingStopLoss: 1347.98,
     swingStopLossPct: 2.15,
     swingHold: "2–4 Days",
-    btstEntryMin: 1374.00,
-    btstEntryMax: 1380.00,
-    btstTarget: 1405.00,
+    btstEntryMin: 1374.84,
+    btstEntryMax: 1380.36,
+    btstTarget: 1405.01,
     btstTargetGainPct: 1.99,
-    btstStopLoss: 1364.00,
+    btstStopLoss: 1363.96,
     btstStopLossPct: 0.99,
     btstHold: "1 Day (Sell Tomorrow 10 AM)",
     tenYearWinRate: 78.4,
@@ -389,22 +389,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Trent Limited (Tata Retail)",
     sector: "Retail / Fast Fashion Giant (Zudio & Westside)",
     category: "midcap",
-    cmp: 7145.00,
-    change: 3.40,
+    cmp: 2913.90,
+    change: 3.31,
     setup: "BUY",
     regime: "GOOD",
-    swingEntryMin: 7100.00,
-    swingEntryMax: 7160.00,
-    swingTarget: 7580.00,
+    swingEntryMin: 2902.24,
+    swingEntryMax: 2925.56,
+    swingTarget: 3091.36,
     swingTargetGainPct: 6.09,
-    swingStopLoss: 6950.00,
+    swingStopLoss: 2834.35,
     swingStopLossPct: 2.73,
     swingHold: "2–4 Days",
-    btstEntryMin: 7120.00,
-    btstEntryMax: 7150.00,
-    btstTarget: 7290.00,
+    btstEntryMin: 2908.07,
+    btstEntryMax: 2919.73,
+    btstTarget: 2973.05,
     btstTargetGainPct: 2.03,
-    btstStopLoss: 7060.00,
+    btstStopLoss: 2879.22,
     btstStopLossPct: 1.19,
     btstHold: "1 Day (BTST)",
     tenYearWinRate: 83.5,
@@ -419,22 +419,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Tata Power Company Ltd",
     sector: "Energy / Renewable & EV Charging Leader",
     category: "midcap",
-    cmp: 436.50,
-    change: 2.15,
+    cmp: 335.00,
+    change: -1.21,
     setup: "BUY",
     regime: "GOOD",
-    swingEntryMin: 432.00,
-    swingEntryMax: 438.00,
-    swingTarget: 462.00,
+    swingEntryMin: 333.66,
+    swingEntryMax: 336.34,
+    swingTarget: 354.56,
     swingTargetGainPct: 5.84,
-    swingStopLoss: 423.00,
+    swingStopLoss: 324.65,
     swingStopLossPct: 3.09,
     swingHold: "3–5 Days",
-    btstEntryMin: 434.00,
-    btstEntryMax: 437.00,
-    btstTarget: 446.00,
+    btstEntryMin: 334.33,
+    btstEntryMax: 335.67,
+    btstTarget: 342.30,
     btstTargetGainPct: 2.18,
-    btstStopLoss: 431.00,
+    btstStopLoss: 330.78,
     btstStopLossPct: 1.26,
     btstHold: "1 Day (BTST)",
     tenYearWinRate: 77.2,
@@ -449,22 +449,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Zomato Limited",
     sector: "Consumer Tech / Quick Commerce (Blinkit Leader)",
     category: "midcap",
-    cmp: 264.80,
+    cmp: 326.00,
     change: 1.85,
     setup: "BUY",
     regime: "GOOD",
-    swingEntryMin: 262.00,
-    swingEntryMax: 266.00,
-    swingTarget: 284.00,
+    swingEntryMin: 324.70,
+    swingEntryMax: 327.30,
+    swingTarget: 349.63,
     swingTargetGainPct: 7.25,
-    swingStopLoss: 256.00,
+    swingStopLoss: 315.18,
     swingStopLossPct: 3.32,
     swingHold: "3–5 Days",
-    btstEntryMin: 263.50,
-    btstEntryMax: 265.50,
-    btstTarget: 271.00,
+    btstEntryMin: 325.35,
+    btstEntryMax: 326.65,
+    btstTarget: 333.63,
     btstTargetGainPct: 2.34,
-    btstStopLoss: 261.00,
+    btstStopLoss: 321.34,
     btstStopLossPct: 1.43,
     btstHold: "1 Day (BTST)",
     tenYearWinRate: 76.8,
@@ -479,22 +479,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Bharat Electronics Ltd",
     sector: "Defence / Radar & Electronic Warfare Monopoly",
     category: "midcap",
-    cmp: 304.50,
-    change: 1.20,
+    cmp: 363.35,
+    change: -1.25,
     setup: "BUY",
     regime: "GOOD",
-    swingEntryMin: 302.00,
-    swingEntryMax: 306.00,
-    swingTarget: 322.00,
+    swingEntryMin: 361.90,
+    swingEntryMax: 364.80,
+    swingTarget: 384.24,
     swingTargetGainPct: 5.75,
-    swingStopLoss: 295.00,
+    swingStopLoss: 352.01,
     swingStopLossPct: 3.12,
     swingHold: "2–4 Days",
-    btstEntryMin: 303.00,
-    btstEntryMax: 305.00,
-    btstTarget: 311.00,
+    btstEntryMin: 362.62,
+    btstEntryMax: 364.08,
+    btstTarget: 371.09,
     btstTargetGainPct: 2.13,
-    btstStopLoss: 300.50,
+    btstStopLoss: 358.59,
     btstStopLossPct: 1.31,
     btstHold: "1 Day (BTST)",
     tenYearWinRate: 79.4,
@@ -509,22 +509,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Hindustan Aeronautics Ltd",
     sector: "Defence & Aerospace / Fighter Aircraft & Engines",
     category: "midcap",
-    cmp: 4625.00,
-    change: 2.10,
+    cmp: 4850.00,
+    change: -0.10,
     setup: "BUY",
     regime: "GOOD",
-    swingEntryMin: 4600.00,
-    swingEntryMax: 4640.00,
-    swingTarget: 4890.00,
+    swingEntryMin: 4830.60,
+    swingEntryMax: 4869.40,
+    swingTarget: 5127.90,
     swingTargetGainPct: 5.73,
-    swingStopLoss: 4490.00,
+    swingStopLoss: 4708.38,
     swingStopLossPct: 2.92,
     swingHold: "3–5 Days",
-    btstEntryMin: 4610.00,
-    btstEntryMax: 4635.00,
-    btstTarget: 4725.00,
+    btstEntryMin: 4840.30,
+    btstEntryMax: 4859.70,
+    btstTarget: 4954.76,
     btstTargetGainPct: 2.16,
-    btstStopLoss: 4570.00,
+    btstStopLoss: 4792.28,
     btstStopLossPct: 1.19,
     btstHold: "1 Day (BTST)",
     tenYearWinRate: 81.2,
@@ -539,22 +539,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Reliance Industries Ltd",
     sector: "Energy / Telecom (Growth Leader)",
     category: "nifty50",
-    cmp: 2948.00,
-    change: 0.85,
+    cmp: 1158.00,
+    change: -3.19,
     setup: "BUY",
     regime: "GOOD",
-    swingEntryMin: 2940.00,
-    swingEntryMax: 2955.00,
-    swingTarget: 3085.00,
+    swingEntryMin: 1153.37,
+    swingEntryMax: 1162.63,
+    swingTarget: 1211.85,
     swingTargetGainPct: 4.65,
-    swingStopLoss: 2885.00,
+    swingStopLoss: 1133.22,
     swingStopLossPct: 2.14,
     swingHold: "3–5 Days",
-    btstEntryMin: 2944.00,
-    btstEntryMax: 2950.00,
-    btstTarget: 3008.00,
+    btstEntryMin: 1155.68,
+    btstEntryMax: 1160.32,
+    btstTarget: 1181.62,
     btstTargetGainPct: 2.04,
-    btstStopLoss: 2920.00,
+    btstStopLoss: 1147.00,
     btstStopLossPct: 0.95,
     btstHold: "1 Day (Sell Tomorrow 10 AM)",
     tenYearWinRate: 76.1,
@@ -569,22 +569,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Polycab India Limited",
     sector: "FMEG & Infrastructure / Power Cables",
     category: "midcap",
-    cmp: 6890.00,
-    change: 0.95,
+    cmp: 7680.00,
+    change: -0.49,
     setup: "BUY",
     regime: "GOOD",
-    swingEntryMin: 6850.00,
-    swingEntryMax: 6910.00,
-    swingTarget: 7280.00,
+    swingEntryMin: 7649.28,
+    swingEntryMax: 7710.72,
+    swingTarget: 8114.69,
     swingTargetGainPct: 5.66,
-    swingStopLoss: 6680.00,
+    swingStopLoss: 7445.76,
     swingStopLossPct: 3.05,
     swingHold: "3–5 Days",
-    btstEntryMin: 6870.00,
-    btstEntryMax: 6900.00,
-    btstTarget: 7025.00,
+    btstEntryMin: 7664.64,
+    btstEntryMax: 7695.36,
+    btstTarget: 7830.53,
     btstTargetGainPct: 1.96,
-    btstStopLoss: 6810.00,
+    btstStopLoss: 7590.91,
     btstStopLossPct: 1.16,
     btstHold: "1 Day (BTST)",
     tenYearWinRate: 78.6,
@@ -599,22 +599,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Dixon Technologies (India) Ltd",
     sector: "Electronics Manufacturing Services / Mobile & IT",
     category: "midcap",
-    cmp: 14950.00,
-    change: 2.80,
+    cmp: 11400.00,
+    change: 1.49,
     setup: "BUY",
     regime: "GOOD",
-    swingEntryMin: 14850.00,
-    swingEntryMax: 15000.00,
-    swingTarget: 15950.00,
+    swingEntryMin: 11354.40,
+    swingEntryMax: 11445.60,
+    swingTarget: 12162.66,
     swingTargetGainPct: 6.69,
-    swingStopLoss: 14450.00,
+    swingStopLoss: 11019.24,
     swingStopLossPct: 3.34,
     swingHold: "2–4 Days",
-    btstEntryMin: 14900.00,
-    btstEntryMax: 14980.00,
-    btstTarget: 15280.00,
+    btstEntryMin: 11377.20,
+    btstEntryMax: 11422.80,
+    btstTarget: 11651.94,
     btstTargetGainPct: 2.21,
-    btstStopLoss: 14750.00,
+    btstStopLoss: 11247.24,
     btstStopLossPct: 1.34,
     btstHold: "1 Day (BTST)",
     tenYearWinRate: 80.4,
@@ -629,22 +629,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Suzlon Energy Limited",
     sector: "Renewable Energy / Wind Turbine Generation",
     category: "midcap",
-    cmp: 68.40,
-    change: 2.45,
+    cmp: 37.30,
+    change: 1.03,
     setup: "BUY",
     regime: "GOOD",
-    swingEntryMin: 67.50,
-    swingEntryMax: 68.80,
-    swingTarget: 73.50,
+    swingEntryMin: 37.15,
+    swingEntryMax: 37.45,
+    swingTarget: 40.08,
     swingTargetGainPct: 7.46,
-    swingStopLoss: 65.20,
+    swingStopLoss: 35.55,
     swingStopLossPct: 4.68,
     swingHold: "3–6 Days",
-    btstEntryMin: 68.00,
-    btstEntryMax: 68.60,
-    btstTarget: 70.20,
+    btstEntryMin: 37.23,
+    btstEntryMax: 37.37,
+    btstTarget: 38.28,
     btstTargetGainPct: 2.63,
-    btstStopLoss: 67.20,
+    btstStopLoss: 36.65,
     btstStopLossPct: 1.75,
     btstHold: "1 Day (BTST)",
     tenYearWinRate: 74.6,
@@ -659,22 +659,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Central Depository Services Ltd",
     sector: "Capital Markets / Demat FinTech Monopoly",
     category: "midcap",
-    cmp: 1520.00,
-    change: 1.60,
+    cmp: 1232.00,
+    change: 0.82,
     setup: "BUY",
     regime: "GOOD",
-    swingEntryMin: 1510.00,
-    swingEntryMax: 1530.00,
-    swingTarget: 1615.00,
+    swingEntryMin: 1227.07,
+    swingEntryMax: 1236.93,
+    swingTarget: 1309.00,
     swingTargetGainPct: 6.25,
-    swingStopLoss: 1470.00,
+    swingStopLoss: 1191.47,
     swingStopLossPct: 3.29,
     swingHold: "2–4 Days",
-    btstEntryMin: 1515.00,
-    btstEntryMax: 1525.00,
-    btstTarget: 1555.00,
+    btstEntryMin: 1229.54,
+    btstEntryMax: 1234.46,
+    btstTarget: 1260.34,
     btstTargetGainPct: 2.30,
-    btstStopLoss: 1498.00,
+    btstStopLoss: 1214.14,
     btstStopLossPct: 1.45,
     btstHold: "1 Day (BTST)",
     tenYearWinRate: 79.8,
@@ -689,22 +689,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Angel One Limited",
     sector: "Financial Services / Digital Retail Brokerage",
     category: "midcap",
-    cmp: 2845.00,
-    change: 1.45,
+    cmp: 292.45,
+    change: 1.12,
     setup: "BUY",
     regime: "GOOD",
-    swingEntryMin: 2820.00,
-    swingEntryMax: 2860.00,
-    swingTarget: 3020.00,
+    swingEntryMin: 291.28,
+    swingEntryMax: 293.62,
+    swingTarget: 310.44,
     swingTargetGainPct: 6.15,
-    swingStopLoss: 2740.00,
+    swingStopLoss: 281.66,
     swingStopLossPct: 3.69,
     swingHold: "2–5 Days",
-    btstEntryMin: 2835.00,
-    btstEntryMax: 2855.00,
-    btstTarget: 2910.00,
+    btstEntryMin: 291.87,
+    btstEntryMax: 293.03,
+    btstTarget: 299.12,
     btstTargetGainPct: 2.28,
-    btstStopLoss: 2805.00,
+    btstStopLoss: 288.33,
     btstStopLossPct: 1.41,
     btstHold: "1 Day (BTST)",
     tenYearWinRate: 77.5,
@@ -719,22 +719,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Larsen & Toubro Ltd",
     sector: "Infrastructure / Capital Goods",
     category: "nifty50",
-    cmp: 3620.00,
-    change: 1.80,
+    cmp: 3801.30,
+    change: 3.72,
     setup: "BUY",
     regime: "GOOD",
-    swingEntryMin: 3600.00,
-    swingEntryMax: 3630.00,
-    swingTarget: 3790.00,
+    swingEntryMin: 3786.09,
+    swingEntryMax: 3816.51,
+    swingTarget: 3979.96,
     swingTargetGainPct: 4.70,
-    swingStopLoss: 3535.00,
+    swingStopLoss: 3711.97,
     swingStopLossPct: 2.35,
     swingHold: "2–4 Days",
-    btstEntryMin: 3615.00,
-    btstEntryMax: 3625.00,
-    btstTarget: 3698.00,
+    btstEntryMin: 3793.70,
+    btstEntryMax: 3808.90,
+    btstTarget: 3883.03,
     btstTargetGainPct: 2.15,
-    btstStopLoss: 3585.00,
+    btstStopLoss: 3764.43,
     btstStopLossPct: 0.97,
     btstHold: "1 Day (Sell Tomorrow 10 AM)",
     tenYearWinRate: 79.2,
@@ -749,22 +749,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Tata Consultancy Services",
     sector: "Information Technology",
     category: "nifty50",
-    cmp: 4120.00,
-    change: -0.45,
+    cmp: 2460.00,
+    change: -1.48,
     setup: "HOLD",
     regime: "GOOD",
-    swingEntryMin: 4050.00,
-    swingEntryMax: 4080.00,
-    swingTarget: 4280.00,
+    swingEntryMin: 2450.16,
+    swingEntryMax: 2469.84,
+    swingTarget: 2555.45,
     swingTargetGainPct: 3.88,
-    swingStopLoss: 4020.00,
+    swingStopLoss: 2418.18,
     swingStopLossPct: 1.70,
     swingHold: "Hold Day 2 of 4",
-    btstEntryMin: 4110.00,
-    btstEntryMax: 4125.00,
-    btstTarget: 4195.00,
+    btstEntryMin: 2455.08,
+    btstEntryMax: 2464.92,
+    btstTarget: 2504.77,
     btstTargetGainPct: 1.82,
-    btstStopLoss: 4080.00,
+    btstStopLoss: 2436.14,
     btstStopLossPct: 0.97,
     btstHold: "1 Day (Sell Tomorrow 10 AM)",
     tenYearWinRate: 73.8,
@@ -779,22 +779,22 @@ const GOOD_MARKET_STOCKS = [
     name: "Wipro Limited",
     sector: "Information Technology / Global Enterprise Services",
     category: "nifty50",
-    cmp: 542.00,
-    change: 0.65,
+    cmp: 184.50,
+    change: -1.34,
     setup: "NOTRADE",
     regime: "GOOD",
-    swingEntryMin: 538.00,
-    swingEntryMax: 544.00,
-    swingTarget: 568.00,
+    swingEntryMin: 183.76,
+    swingEntryMax: 185.24,
+    swingTarget: 193.36,
     swingTargetGainPct: 4.80,
-    swingStopLoss: 528.00,
+    swingStopLoss: 179.74,
     swingStopLossPct: 2.58,
     swingHold: "2–4 Days",
-    btstEntryMin: 540.00,
-    btstEntryMax: 543.00,
-    btstTarget: 552.00,
+    btstEntryMin: 184.13,
+    btstEntryMax: 184.87,
+    btstTarget: 187.91,
     btstTargetGainPct: 1.85,
-    btstStopLoss: 536.00,
+    btstStopLoss: 182.45,
     btstStopLossPct: 1.11,
     btstHold: "1 Day (BTST)",
     tenYearWinRate: 74.2,
@@ -815,22 +815,22 @@ const BAD_MARKET_STOCKS = [
     name: "ITC Limited",
     sector: "FMCG / Defensive Cashflow Haven",
     category: "nifty50",
-    cmp: 485.50,
-    change: 0.75,
+    cmp: 259.50,
+    change: -0.19,
     setup: "BUY",
     regime: "BAD",
-    swingEntryMin: 483.00,
-    swingEntryMax: 487.00,
-    swingTarget: 508.00,
+    swingEntryMin: 258.46,
+    swingEntryMax: 260.54,
+    swingTarget: 271.51,
     swingTargetGainPct: 4.63,
-    swingStopLoss: 476.00,
+    swingStopLoss: 254.44,
     swingStopLossPct: 1.95,
     swingHold: "3–5 Days",
-    btstEntryMin: 484.00,
-    btstEntryMax: 486.00,
-    btstTarget: 495.00,
+    btstEntryMin: 258.98,
+    btstEntryMax: 260.02,
+    btstTarget: 264.59,
     btstTargetGainPct: 1.96,
-    btstStopLoss: 481.50,
+    btstStopLoss: 257.37,
     btstStopLossPct: 0.82,
     btstHold: "1 Day (Sell Tomorrow 10 AM)",
     tenYearWinRate: 82.1,
@@ -845,22 +845,22 @@ const BAD_MARKET_STOCKS = [
     name: "Sun Pharmaceutical Industries",
     sector: "Healthcare / Non-Cyclical Pharma",
     category: "nifty50",
-    cmp: 1720.00,
-    change: 1.10,
+    cmp: 1757.50,
+    change: 0.36,
     setup: "BUY",
     regime: "BAD",
-    swingEntryMin: 1710.00,
-    swingEntryMax: 1725.00,
-    swingTarget: 1795.00,
+    swingEntryMin: 1750.47,
+    swingEntryMax: 1764.53,
+    swingTarget: 1834.13,
     swingTargetGainPct: 4.36,
-    swingStopLoss: 1685.00,
+    swingStopLoss: 1721.82,
     swingStopLossPct: 2.03,
     swingHold: "2–4 Days",
-    btstEntryMin: 1715.00,
-    btstEntryMax: 1725.00,
-    btstTarget: 1752.00,
+    btstEntryMin: 1753.98,
+    btstEntryMax: 1761.02,
+    btstTarget: 1790.19,
     btstTargetGainPct: 1.86,
-    btstStopLoss: 1705.00,
+    btstStopLoss: 1742.21,
     btstStopLossPct: 0.87,
     btstHold: "1 Day (Sell Tomorrow 10 AM)",
     tenYearWinRate: 77.5,
@@ -875,22 +875,22 @@ const BAD_MARKET_STOCKS = [
     name: "Hindustan Unilever Ltd",
     sector: "FMCG / Essential Consumer",
     category: "nifty50",
-    cmp: 2435.00,
-    change: 0.40,
+    cmp: 1815.80,
+    change: -0.12,
     setup: "BUY",
     regime: "BAD",
-    swingEntryMin: 2420.00,
-    swingEntryMax: 2445.00,
-    swingTarget: 2530.00,
+    swingEntryMin: 1808.54,
+    swingEntryMax: 1823.06,
+    swingTarget: 1886.62,
     swingTargetGainPct: 3.90,
-    swingStopLoss: 2390.00,
+    swingStopLoss: 1782.21,
     swingStopLossPct: 1.85,
     swingHold: "3–5 Days",
-    btstEntryMin: 2430.00,
-    btstEntryMax: 2440.00,
-    btstTarget: 2478.00,
+    btstEntryMin: 1812.17,
+    btstEntryMax: 1819.43,
+    btstTarget: 1847.94,
     btstTargetGainPct: 1.77,
-    btstStopLoss: 2415.00,
+    btstStopLoss: 1800.91,
     btstStopLossPct: 0.82,
     btstHold: "1 Day (Sell Tomorrow 10 AM)",
     tenYearWinRate: 79.8,
@@ -2539,7 +2539,7 @@ async function closePaperTrade(positionId) {
 // ==========================================================================
 function initSecurityLock() {
   const headerLockBtn = document.getElementById('header-lock-btn');
-  if (headerLockBtn) headerLockBtn.addEventListener('click', () => lockApp());
+  if (headerLockBtn) headerLockBtn.addEventListener('click', () => lockApp(true));
 
   document.querySelectorAll('.pin-btn[data-key]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2669,20 +2669,57 @@ async function triggerBiometricUnlock() {
   }
 }
 
-function lockApp() {
+// 60-Minute Session PIN Security Engine
+const SESSION_DURATION_MS = 60 * 60 * 1000; // 60 Minutes
+const SESSION_KEY = 'tm_session_expiry';
+let sessionExpiryTimer = null;
+
+function lockApp(isManual = false) {
   AppState.isLocked = true;
   AppState.enteredPin = '';
   updatePinDots();
+  if (isManual) {
+    localStorage.removeItem(SESSION_KEY);
+    if (sessionExpiryTimer) clearTimeout(sessionExpiryTimer);
+  }
   const modal = document.getElementById('modal-security-lock');
   if (modal) modal.classList.add('active');
 }
 
-function unlockApp() {
+function unlockApp(saveNewSession = true) {
   AppState.isLocked = false;
   AppState.enteredPin = '';
   updatePinDots();
   const modal = document.getElementById('modal-security-lock');
   if (modal) modal.classList.remove('active');
+
+  if (saveNewSession) {
+    const expiry = Date.now() + SESSION_DURATION_MS;
+    localStorage.setItem(SESSION_KEY, expiry.toString());
+    scheduleSessionTimeout(SESSION_DURATION_MS);
+  }
+}
+
+function scheduleSessionTimeout(remainingMs) {
+  if (sessionExpiryTimer) clearTimeout(sessionExpiryTimer);
+  sessionExpiryTimer = setTimeout(() => {
+    localStorage.removeItem(SESSION_KEY);
+    lockApp(false);
+    showToast("🔒 60-minute session completed. Please enter your PIN to continue.", "warning", 6000);
+  }, Math.max(1000, remainingMs));
+}
+
+function checkSessionOnStartup() {
+  const stored = parseInt(localStorage.getItem(SESSION_KEY) || '0', 10);
+  const now = Date.now();
+  if (stored > now) {
+    // Session is active (within 60 min). Do not ask for PIN!
+    unlockApp(false);
+    scheduleSessionTimeout(stored - now);
+  } else {
+    // First time or session expired -> require PIN
+    lockApp(false);
+  }
 }
 
 function updatePinDots() {
@@ -2694,19 +2731,21 @@ function updatePinDots() {
 
 function verifyPin() {
   if (AppState.enteredPin === AppState.pin) {
-    unlockApp();
+    unlockApp(true); // Establishes 60-minute session
+    showToast("🔓 Unlocked! Session active for 60 minutes.", "success", 3000);
   } else {
-    alert("Incorrect Master PIN. Please try again.");
+    alert("Incorrect PIN. Please try again.");
     AppState.enteredPin = '';
     updatePinDots();
   }
 }
 
 function resetInactivityTimer() {
+  // 60-minute session is primary; autoLockMinutes can also lock on complete idle
   if (AppState.inactivityTimer) clearTimeout(AppState.inactivityTimer);
   if (!AppState.isLocked && AppState.autoLockMinutes > 0) {
     AppState.inactivityTimer = setTimeout(() => {
-      lockApp();
+      lockApp(true);
     }, AppState.autoLockMinutes * 60 * 1000);
   }
 }
@@ -2728,12 +2767,25 @@ window.addEventListener('DOMContentLoaded', async () => {
   initNavigation();
   initSecurityLock();
 
-  // Mandatory App Lock on Startup
-  lockApp();
+  // Check 60-Minute Session: If logged in within last 60 minutes, do not ask for PIN
+  checkSessionOnStartup();
 
-  // Register PWA Service Worker
+  // Register PWA Service Worker with Automatic Update Reload
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').then((reg) => {
+      reg.update().catch(() => {});
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log("[PWA] Newer version detected. Refreshing app...");
+              window.location.reload();
+            }
+          });
+        }
+      });
+    }).catch(() => {});
   }
 
   // Initial View
@@ -2743,7 +2795,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Background live stock price refresh from NSE
   setTimeout(() => {
     refreshAllStockPrices(true);
-  }, 1200);
+  }, 1000);
 });
 
 function initNavigation() {
@@ -3091,6 +3143,20 @@ async function refreshAllStockPrices(silent = false) {
     }
   }
 }
+
+async function triggerManualPriceFetch() {
+  const icon = document.getElementById('header-refresh-icon');
+  const btn = document.getElementById('header-fetch-price-btn');
+  if (icon) icon.classList.add('spinning');
+  if (btn) btn.disabled = true;
+  try {
+    await refreshAllStockPrices(false);
+  } finally {
+    if (icon) icon.classList.remove('spinning');
+    if (btn) btn.disabled = false;
+  }
+}
+window.triggerManualPriceFetch = triggerManualPriceFetch;
 
 function applyStockPriceUpdate(stock, newCmp, changePct) {
   stock.cmp = Number(newCmp);

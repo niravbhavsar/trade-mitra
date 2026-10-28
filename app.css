@@ -1890,32 +1890,75 @@ body.light-theme .tm-toast {
    ENHANCEMENTS: Accordion, Mobile Badges, Modal Cross, Re-scan & Test Buy
    ========================================================================== */
 
-/* 0. Live Real-Time 5s Auto-Ticker Badge */
-.live-ticker-badge {
+/* 0. Live Real-Time 5s Auto-Ticker Badge & Manual Fetch Button */
+.header-live-pill {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 2px 7px;
-  background: rgba(16, 185, 129, 0.16);
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  padding: 3px 8px;
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.45);
   border-radius: var(--radius-full);
-  font-size: 0.68rem;
-  font-weight: 700;
+  font-size: 0.7rem;
+  font-weight: 800;
   color: var(--profit);
   letter-spacing: 0.5px;
+  vertical-align: middle;
 }
 
 .live-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--profit);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.9);
   animation: pulseLiveDot 1.4s ease-in-out infinite;
 }
 
 @keyframes pulseLiveDot {
-  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 4px rgba(16, 185, 129, 0.8); }
-  50% { opacity: 0.35; transform: scale(0.85); box-shadow: none; }
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 7px rgba(16, 185, 129, 0.9); }
+  50% { opacity: 0.35; transform: scale(0.8); box-shadow: none; }
+}
+
+.header-action-btn.header-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(14, 165, 233, 0.15);
+  border: 1px solid rgba(14, 165, 233, 0.4);
+  color: var(--primary);
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.header-action-btn.header-refresh-btn:hover {
+  background: rgba(14, 165, 233, 0.28);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+#header-refresh-icon.spinning {
+  display: inline-block;
+  animation: spinHeaderIcon 0.8s linear infinite;
+}
+
+@keyframes spinHeaderIcon {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+  .header-refresh-label {
+    display: none;
+  }
+  .header-action-btn.header-refresh-btn {
+    padding: 0.4rem 0.55rem;
+  }
 }
 
 /* 1. Settings Collapsible Accordion (1 Open at a time, 1st open by default) */

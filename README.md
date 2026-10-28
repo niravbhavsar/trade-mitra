@@ -40,7 +40,7 @@ A lightweight, zero-cost, mobile-first Progressive Web Application (PWA) designe
 | **Serverless API Layer** | Netlify Functions (Node.js ES6) | **₹0 / $0** | Clean JavaScript serverless functions (`netlify/functions/quote.js` and `batch.js`) proxying live NSE quotes. **No PHP, no heavy backend.** |
 | **Cloud Database** | **Google Firebase Cloud Firestore** | **₹0 / $0** | **Permanently Free (Spark Tier).** Real-time multi-device synchronization (`onSnapshot` / `setDoc`) between phone and desktop. **Never pauses or sleeps.** |
 | **Local Storage Engine** | IndexedDB & `localStorage` | **₹0 / $0** | Offline-first persistence. Bootstraps in < 50ms from local storage even when offline. |
-| **Offline PWA** | Web App Manifest + Service Worker | **₹0 / $0** | `manifest.json` + `sw.js` (Cache-first for static assets, network-pass-through for Firebase). Installable as a native app on iOS, Android, and Windows. |
+| **Offline PWA** | Web App Manifest + Service Worker | **₹0 / $0** | `manifest.json` + `sw.js` (Network-First with instant cache invalidation). Auto-updates seamlessly on phone without needing to reinstall. |
 | **Daily Cloud Automation** | **GitHub Actions** Scheduled Workflow | **₹0 / $0** | Runs every weekday at **09:45 UTC (03:15 PM IST)** on Microsoft Azure cloud infrastructure. Runs without opening the app. |
 | **Alert Notifications** | Telegram Bot API | **₹0 / $0** | Free, instant mobile trade alerts for Buy suggestions, Target hits, and Safety stop-loss notifications. |
 | **Security & Privacy** | Web Crypto API (SHA-256) + WebAuthn | **₹0 / $0** | 4-digit Master PIN, biometric sensor unlock (Fingerprint / Face ID / Windows Hello), and 5-minute inactivity auto-lock. |
@@ -135,8 +135,9 @@ Since the application has **zero build dependencies**, you can run it immediatel
 ## 🔒 Security & Privacy
 
 * **Master PIN:** Default is `5189` (configurable under Settings).
+* **60-Minute Session Memory:** PIN is required on initial access. Once unlocked, the app stays conveniently unlocked for 60 minutes across page refreshes and tab reloads. After 60 minutes, it automatically locks again.
+* **Manual Immediate Lock:** Tap the lock icon in the top header at any time to immediately lock the app and terminate the active 60-minute session.
 * **Biometric Unlock:** One-tap unlock using device fingerprint / Face ID / Windows Hello.
-* **Inactivity Auto-Lock:** Automatically locks after 5 minutes of unattended idle time.
 
 ---
 
