@@ -1,10 +1,16 @@
-name: Market-Nirav Daily 10-Yr Swing Scanner
+name: TradeMitra Daily Scanner & Live Cloud Watchdog
 
 on:
   schedule:
-    # 1. Runs Monday to Friday at 09:45 UTC (15:15 IST / 3:15 PM — Prime Daily Action Check before market close)
+    # 1. 04:15 UTC = 09:45 AM IST (Morning 1-Day BTST Exit Alert & Target Check)
+    - cron: '15 4 * * 1-5'
+    # 2. 06:00 UTC = 11:30 AM IST (Midday Target Watchdog)
+    - cron: '0 6 * * 1-5'
+    # 3. 07:45 UTC = 01:15 PM IST (Afternoon Target Watchdog)
+    - cron: '45 7 * * 1-5'
+    # 4. 09:45 UTC = 03:15 PM IST (Prime Daily Action Check + Target Watchdog)
     - cron: '45 9 * * 1-5'
-    # 2. Runs Monday to Friday at 10:30 UTC (16:00 IST / 4:00 PM — Post-market Close Summary)
+    # 5. 10:30 UTC = 04:00 PM IST (Post-market Close Summary)
     - cron: '30 10 * * 1-5'
   workflow_dispatch: # Allows manual trigger from GitHub UI anytime
 

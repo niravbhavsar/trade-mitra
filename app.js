@@ -1676,9 +1676,13 @@ function simulatePositionPrice(positionId, targetGainPct) {
     pos.isTrailingBreakeven = true;
     showToast(`📈 Simulated Price moved to ₹${newPrice.toFixed(0)} (+${targetGainPct}%). 🛡️ Institutional Trailing Stop triggered! Stop-loss raised to ₹${pos.entryPrice.toFixed(0)} (Zero-Risk Trade).`, "success", 5000);
   } else if (targetGainPct >= 3.5) {
-    showToast(`🎯 Target Hit! Price touched ₹${newPrice.toFixed(0)} (+${targetGainPct}%). You can now tap 'Close / Exit' to pocket ₹${pos.currentPnl.toFixed(0)} profit!`, "success", 5000);
+    showToast(`🎯 Target Hit! Price touched ₹${newPrice.toFixed(0)} (+${targetGainPct}%). Dispatching Telegram target alert...`, "success", 5000);
+    pos.targetAlertSent = false;
+    checkAndDispatchPositionAlerts(pos);
   } else if (targetGainPct < 0) {
-    showToast(`🛑 Stop Simulation: Price dipped to ₹${newPrice.toFixed(0)} (${targetGainPct}%). Strict stop cuts loss at ₹${Math.abs(pos.currentPnl).toFixed(0)}.`, "warning", 4500);
+    showToast(`🛑 Stop Simulation: Price dipped to ₹${newPrice.toFixed(0)} (${targetGainPct}%). Dispatching Telegram stop-loss alert...`, "warning", 5000);
+    pos.stopAlertSent = false;
+    checkAndDispatchPositionAlerts(pos);
   } else {
     showToast(`📈 Price simulated at ₹${newPrice.toFixed(0)} (${targetGainPct >= 0 ? '+' : ''}${targetGainPct}%).`, "info", 3000);
   }
@@ -2578,7 +2582,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       AppState.virtualCash -= cost;
-      AppState.openPositions.push({
+      const newPosition = {
         id: `pos_${Date.now()}`,
         symbol: stock.symbol,
         name: stock.name,
@@ -2594,13 +2598,34 @@ document.addEventListener('DOMContentLoaded', () => {
         pnlPct: 0,
         holdDay: 1,
         maxHoldDays: is1Day ? 1 : 4,
-        isTrailingBreakeven: false
-      });
+        isTrailingBreakeven: false,
+        targetAlertSent: false,
+        stopAlertSent: false,
+        btstMorningAlertSent: false
+      };
+      AppState.openPositions.push(newPosition);
 
       DB.saveState();
       document.getElementById('modal-paper-buy').classList.remove('active');
-      showToast(`✅ Practice Buy Placed: ${qty} shares of ${stock.symbol} added to portfolio!`, "success", 4000);
+      showToast(`✅ Trade Placed: ${qty} shares of ${stock.symbol} added to portfolio!`, "success", 4000);
       switchView('home');
+
+      // Send Instant Telegram Trade Confirmation Alert
+      const token = (AppState.telegramToken || '').trim();
+      const chatId = (AppState.telegramChatId || '').trim();
+      if (token && chatId) {
+        const modeTitle = is1Day ? "⚡ 1-Day BTST" : "📈 2–4 Day Swing";
+        const buyMsg =
+          `⚡ <b>TRADEMITRA: TRADE STARTED</b>\n\n` +
+          `🏢 Stock: <b>${stock.symbol}</b> (${modeTitle})\n` +
+          `🟢 Action: <b>BOUGHT AT CMP</b>\n\n` +
+          `💵 Entry Price: <b>₹${stock.cmp.toFixed(2)}</b>\n` +
+          `🎯 Profit Target: <b>₹${target.toFixed(2)}</b>\n` +
+          `🛑 Safety Stop: <b>₹${stopLoss.toFixed(2)}</b>\n` +
+          `📦 Quantity: <b>${qty} Shares</b> (₹${cost.toLocaleString('en-IN')})\n\n` +
+          `👉 <i>TradeMitra will alert you on Telegram as soon as your target is reached so you can sell immediately in real market & app!</i>`;
+        sendTelegramMessage(token, chatId, buyMsg).catch(() => {});
+      }
     });
   }
 });
@@ -2621,6 +2646,23 @@ async function closePaperTrade(positionId) {
 
   const returnCash = pos.qty * pos.currentPrice;
   AppState.virtualCash += returnCash;
+
+  // Send Telegram Exit Confirmation
+  const token = (AppState.telegramToken || '').trim();
+  const chatId = (AppState.telegramChatId || '').trim();
+  if (token && chatId) {
+    const isProfit = pos.currentPnl >= 0;
+    const modeTitle = pos.mode === '1day' ? "⚡ 1-Day BTST" : "📈 2–4 Day Swing";
+    const profitStr = `${isProfit ? '+' : ''}₹${pos.currentPnl.toFixed(0)} (${isProfit ? '+' : ''}${pos.pnlPct.toFixed(2)}%)`;
+    const exitMsg =
+      `💰 <b>TRADEMITRA: TRADE SOLD & CLOSED</b>\n\n` +
+      `🏢 Stock: <b>${pos.symbol}</b> (${modeTitle})\n` +
+      `🏁 Sell Price: <b>₹${pos.currentPrice.toFixed(2)}</b>\n` +
+      `💰 ${isProfit ? 'Realized Profit' : 'Loss Cut'}: <b>${profitStr}</b>\n` +
+      `💵 New Cash Balance: <b>₹${AppState.virtualCash.toLocaleString('en-IN')}</b>\n\n` +
+      `👉 <i>Trade recorded in your Profit Diary. Capital safely freed for the next 3:15 PM trade!</i>`;
+    sendTelegramMessage(token, chatId, exitMsg).catch(() => {});
+  }
 
   AppState.tradeJournal.unshift({
     id: `j_${Date.now()}`,
@@ -3292,8 +3334,68 @@ function applyStockPriceUpdate(stock, newCmp, changePct) {
       pos.currentPrice = stock.cmp;
       pos.currentPnl = (pos.currentPrice - pos.entryPrice) * pos.qty;
       pos.pnlPct = ((pos.currentPrice - pos.entryPrice) / pos.entryPrice) * 100;
+      checkAndDispatchPositionAlerts(pos);
     }
   });
+}
+
+// Automatic Telegram Alert Watchdog on Target / Stop Loss
+async function checkAndDispatchPositionAlerts(pos) {
+  const token = (AppState.telegramToken || '').trim();
+  const chatId = (AppState.telegramChatId || '').trim();
+  if (!token || !chatId) return;
+
+  const is1Day = pos.mode === '1day';
+  const modeTitle = is1Day ? "⚡ 1-Day BTST" : "📈 2–4 Day Swing";
+
+  // 1. Target Reached Alert (Send on Telegram)
+  if (pos.currentPrice >= pos.target && !pos.targetAlertSent) {
+    pos.targetAlertSent = true;
+    DB.saveState();
+
+    const profitRs = Math.round(pos.currentPnl).toLocaleString('en-IN');
+    const gainPct = pos.pnlPct.toFixed(2);
+    const msg =
+      `🎯 <b>TRADEMITRA: TARGET REACHED! TIME TO SELL</b>\n\n` +
+      `🏢 Stock: <b>${pos.symbol}</b> (${modeTitle})\n` +
+      `🔔 Action: <b>SELL NOW IN REAL MARKET & APP</b>\n\n` +
+      `💵 Current Price: <b>₹${pos.currentPrice.toFixed(2)}</b>\n` +
+      `🎯 Target Price: <b>₹${pos.target.toFixed(2)}</b>\n` +
+      `💰 Profit to Lock: <b style="color:#10b981;">+₹${profitRs} (+${gainPct}%)</b>\n` +
+      `⏱ Holding Duration: <b>Day ${pos.holdDay || 1}</b>\n\n` +
+      `👉 <i>Open your broker app to sell now and pocket your profit, and tap "Sell Now" in TradeMitra to record your win!</i>`;
+
+    try {
+      await sendTelegramMessage(token, chatId, msg);
+      showToast(`🎯 Telegram Alert Sent: Target reached for ${pos.symbol}! Time to sell.`, "success", 8000);
+    } catch (e) {
+      console.warn("Could not dispatch Telegram alert:", e.message);
+    }
+  }
+
+  // 2. Safety Stop-Loss Alert (Send on Telegram)
+  if (pos.stopLoss > 0 && pos.currentPrice <= pos.stopLoss && !pos.stopAlertSent) {
+    pos.stopAlertSent = true;
+    DB.saveState();
+
+    const lossRs = Math.round(Math.abs(pos.currentPnl)).toLocaleString('en-IN');
+    const lossPct = Math.abs(pos.pnlPct).toFixed(2);
+    const msg =
+      `🛑 <b>TRADEMITRA: SAFETY STOP TOUCHED</b>\n\n` +
+      `🏢 Stock: <b>${pos.symbol}</b> (${modeTitle})\n` +
+      `⚠️ Action: <b>EXIT NOW (Protect Capital)</b>\n\n` +
+      `💵 Current Price: <b>₹${pos.currentPrice.toFixed(2)}</b>\n` +
+      `🛑 Stop-Loss Safety Level: <b>₹${pos.stopLoss.toFixed(2)}</b>\n` +
+      `🛡️ Loss Cut at: <b style="color:#ef4444;">-₹${lossRs} (-${lossPct}%)</b>\n\n` +
+      `👉 <i>Exit now in your broker app to protect your capital. Safe cash is ready for the next trade!</i>`;
+
+    try {
+      await sendTelegramMessage(token, chatId, msg);
+      showToast(`🛑 Telegram Alert Sent: Stop-loss touched for ${pos.symbol}. Exit now.`, "warning", 8000);
+    } catch (e) {
+      console.warn("Could not dispatch Telegram alert:", e.message);
+    }
+  }
 }
 
 // ==========================================================================
