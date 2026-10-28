@@ -1277,7 +1277,9 @@ function setMarketCondition(condition) {
 }
 
 function getActiveStockPool() {
-  const basePool = AppState.marketCondition === 'bad' ? BAD_MARKET_STOCKS : GOOD_MARKET_STOCKS;
+  const isBadMarket = AppState.marketCondition === 'bad' || 
+    (AppState.marketCondition === 'auto' && AppState.niftyIndex && (AppState.niftyIndex.change < -0.5 || AppState.niftyIndex.status === 'BEARISH'));
+  const basePool = isBadMarket ? BAD_MARKET_STOCKS : GOOD_MARKET_STOCKS;
   if (AppState.customStocks && AppState.customStocks.length > 0) {
     const baseSymbols = new Set(basePool.map(s => s.symbol));
     const extra = AppState.customStocks.filter(s => !baseSymbols.has(s.symbol));
