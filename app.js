@@ -1542,6 +1542,14 @@ function renderOpenPositionsList() {
   }
 
   container.innerHTML = AppState.openPositions.map(pos => {
+    // 1. Calculate holding days dynamically from entryDate
+    if (pos.entryDate) {
+      const entryTime = new Date(pos.entryDate).setHours(0, 0, 0, 0);
+      const nowTime = new Date().setHours(0, 0, 0, 0);
+      const daysDiff = Math.max(0, Math.floor((nowTime - entryTime) / (1000 * 60 * 60 * 24)));
+      pos.holdDay = daysDiff + 1;
+    }
+
     const isProfit = pos.currentPnl >= 0;
     const modeBadge = pos.mode === '1day' ? '⚡ 1-Day BTST' : '📈 2–5D Swing';
 
@@ -1549,6 +1557,30 @@ function renderOpenPositionsList() {
     if (pos.pnlPct >= 1.5 && !pos.isTrailingBreakeven) {
       pos.isTrailingBreakeven = true;
       pos.stopLoss = Math.max(pos.stopLoss, pos.entryPrice);
+    }
+
+    // Status banners: Target Hit, Stop Hit, or 1-Day Holding alert
+    let targetAlertHtml = '';
+    if (pos.currentPrice >= pos.target) {
+      targetAlertHtml = `
+        <div style="background: rgba(16, 185, 129, 0.18); border: 1px solid var(--profit); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 0.8rem; color: var(--profit); font-weight: 700; margin-top: 8px; display: flex; align-items: center; justify-content: space-between;">
+          <span>🎯 <strong>Target Reached (+${pos.pnlPct.toFixed(1)}%):</strong> Target hit! Tap "Sell Now" to pocket your gain.</span>
+          <span class="badge badge-buy" style="font-size: 0.68rem;">READY TO SELL</span>
+        </div>
+      `;
+    } else if (pos.currentPrice <= pos.stopLoss) {
+      targetAlertHtml = `
+        <div style="background: rgba(239, 68, 68, 0.18); border: 1px solid var(--loss); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 0.8rem; color: var(--loss); font-weight: 700; margin-top: 8px; display: flex; align-items: center; justify-content: space-between;">
+          <span>🛑 <strong>Safety Stop Touched:</strong> Tap "Sell Now" to exit and protect remaining capital.</span>
+          <span class="badge" style="background: var(--loss); color: #fff; font-size: 0.68rem;">EXIT FOR SAFETY</span>
+        </div>
+      `;
+    } else if (pos.mode === '1day' && pos.holdDay >= 2) {
+      targetAlertHtml = `
+        <div style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 0.78rem; color: #fbbf24; margin-top: 8px;">
+          <span>⏰ <strong>1-Day Holding Complete:</strong> Today is morning exit day. Sell between 9:30 AM – 10:30 AM.</span>
+        </div>
+      `;
     }
 
     let trailingStatusHtml = '';
@@ -1587,6 +1619,7 @@ function renderOpenPositionsList() {
           <span class="position-countdown">⏱ Hold Day ${pos.holdDay} of ${pos.maxHoldDays}</span>
         </div>
 
+        ${targetAlertHtml}
         ${trailingStatusHtml}
 
         <!-- Interactive Simulation Testing for Practice -->
@@ -1611,8 +1644,8 @@ function renderOpenPositionsList() {
           <button class="btn btn-outline" onclick="openDetailView('${pos.symbol}')" style="flex: 1; padding: 0.45rem; font-size: 0.8rem;">
             View Chart
           </button>
-          <button class="btn btn-outline" onclick="closePaperTrade('${pos.id}')" style="flex: 1; padding: 0.45rem; font-size: 0.8rem; color: var(--primary);">
-            Close / Exit
+          <button class="btn btn-primary" onclick="closePaperTrade('${pos.id}')" style="flex: 1.3; padding: 0.45rem; font-size: 0.82rem; background: linear-gradient(135deg, #10b981, #059669); border-color: #10b981; color: #fff;">
+            💰 Sell Now (Exit Trade)
           </button>
         </div>
       </div>
@@ -3257,6 +3290,8 @@ function applyStockPriceUpdate(stock, newCmp, changePct) {
   AppState.openPositions.forEach(pos => {
     if (pos.symbol === stock.symbol) {
       pos.currentPrice = stock.cmp;
+      pos.currentPnl = (pos.currentPrice - pos.entryPrice) * pos.qty;
+      pos.pnlPct = ((pos.currentPrice - pos.entryPrice) / pos.entryPrice) * 100;
     }
   });
 }
