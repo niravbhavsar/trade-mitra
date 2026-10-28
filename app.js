@@ -1317,99 +1317,23 @@ function switchView(viewName) {
 function renderHomeView() {
   const heroContainer = document.getElementById('hero-action-container');
   const pool = getActiveStockPool();
-  const todaySetup = pool.find(s => s.setup === 'BUY');
+
+  // 1. Prioritize all high-probability BUY setups, sorted by 10-year historical win rate
+  const buyPool = pool.filter(s => s.setup === 'BUY').sort((a, b) => (b.tenYearWinRate || 0) - (a.tenYearWinRate || 0));
+  const otherPool = pool.filter(s => s.setup !== 'BUY').sort((a, b) => (b.tenYearWinRate || 0) - (a.tenYearWinRate || 0));
+  
+  // Show up to 5 best stocks (at least 3 to 5 recommendations)
+  const topStocks = [...buyPool, ...otherPool].slice(0, 5);
 
   const is1DayMode = AppState.tradingMode === '1day';
   const modeLabel = is1DayMode ? "⚡ 1-DAY DAILY FLIP (BTST)" : "📈 2–5 DAY SWING TRADE";
-  const horizonDuration = is1DayMode ? (todaySetup ? todaySetup.btstHold : "1 Day") : (todaySetup ? todaySetup.swingHold : "2–4 Days");
+  const isBadMarket = AppState.marketCondition === 'bad';
 
-  if (todaySetup) {
-    const entryMin = is1DayMode ? todaySetup.btstEntryMin : todaySetup.swingEntryMin;
-    const entryMax = is1DayMode ? todaySetup.btstEntryMax : todaySetup.swingEntryMax;
-    const target = is1DayMode ? todaySetup.btstTarget : todaySetup.swingTarget;
-    const targetGain = is1DayMode ? todaySetup.btstTargetGainPct : todaySetup.swingTargetGainPct;
-    const stopLoss = is1DayMode ? todaySetup.btstStopLoss : todaySetup.swingStopLoss;
-    const stopLossPct = is1DayMode ? todaySetup.btstStopLossPct : todaySetup.swingStopLossPct;
-
-    const plannedRiskRupees = (AppState.virtualCash * (AppState.riskPct / 100));
-    const perShareRisk = Math.max(1, todaySetup.cmp - stopLoss);
-    const recommendedShares = Math.max(1, Math.floor(plannedRiskRupees / perShareRisk));
-    const totalCapitalRequired = (recommendedShares * todaySetup.cmp);
-
-    const isBadMarket = AppState.marketCondition === 'bad';
-
-    heroContainer.innerHTML = `
-      <div class="card action-hero-card">
-        <div class="hero-header">
-          <div class="hero-title-group">
-            <span class="pulse-badge"><span class="pulse-dot"></span> WHAT TO DO TODAY</span>
-            <span class="regime-badge ${isBadMarket ? 'bad' : 'good'}">
-              ${isBadMarket ? '🛡️ SAFE HAVEN COMPANY' : '🚀 STEADY GROWING COMPANY'}
-            </span>
-          </div>
-          <span class="hero-mode-badge">${modeLabel}</span>
-        </div>
-
-        <div class="stock-headline">
-          <div>
-            <span class="stock-symbol">${todaySetup.symbol}</span>
-            <span class="stock-company">${todaySetup.name} — ${todaySetup.sector}</span>
-          </div>
-          <div class="stock-cmp">₹${todaySetup.cmp.toFixed(2)}</div>
-        </div>
-
-        <!-- Trade Specs Grid -->
-        <div class="trade-specs-grid">
-          <div class="spec-box">
-            <div class="spec-label">Best Price to Buy</div>
-            <div class="spec-value primary">₹${entryMin.toFixed(0)} - ₹${entryMax.toFixed(0)}</div>
-            <div class="spec-sub">Buy at CMP / Market Open</div>
-          </div>
-          <div class="spec-box">
-            <div class="spec-label">Sell Here for Profit</div>
-            <div class="spec-value profit">₹${target.toFixed(0)}</div>
-            <div class="spec-sub profit">+${targetGain.toFixed(1)}% Profit (${horizonDuration})</div>
-          </div>
-          <div class="spec-box">
-            <div class="spec-label">Safety Price (Avoid Loss)</div>
-            <div class="spec-value loss">₹${stopLoss.toFixed(0)}</div>
-            <div class="spec-sub loss">-${stopLossPct.toFixed(1)}% Max Allowed Loss</div>
-          </div>
-          <div class="spec-box">
-            <div class="spec-label">How Many Shares to Buy</div>
-            <div class="spec-value">${recommendedShares} Shares</div>
-            <div class="spec-sub">Cost: ₹${totalCapitalRequired.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-          </div>
-        </div>
-
-        <!-- 10-Year Backtest Proof Strip -->
-        <div class="proof-strip">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--profit); flex-shrink: 0;">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-          </svg>
-          <div>
-            <strong>Past 10-Year Track Record:</strong> This exact pattern won <strong>${todaySetup.tenYearWinRate}% of the time</strong> (${Math.round(todaySetup.totalTested * todaySetup.tenYearWinRate / 100)} wins out of ${todaySetup.totalTested} past events).
-            <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 2px;">${todaySetup.reason}</div>
-          </div>
-        </div>
-
-        <!-- Action Button -->
-        <div class="hero-actions-row">
-          <button class="btn btn-primary" onclick="openPaperBuyModal('${todaySetup.symbol}')" style="height: 48px; font-size: 0.95rem;">
-            ⚡ Practice Buy (Zero Risk)
-          </button>
-          <button class="btn btn-outline" onclick="openDetailView('${todaySetup.symbol}')" style="height: 44px;">
-            📊 View Details &amp; Chart
-          </button>
-        </div>
-      </div>
-    `;
-  } else {
+  if (!topStocks || topStocks.length === 0) {
     heroContainer.innerHTML = `
       <div class="card action-hero-card" style="border-color: var(--border-subtle); background: var(--bg-surface);">
         <div class="hero-header">
-          <span class="badge badge-notrade">NO HIGH-PROBABILITY TRADE TODAY</span>
+          <span class="badge badge-notrade">NO HIGH-PROBABILITY TRADES TODAY</span>
           <span style="font-size: 0.75rem; color: var(--text-dim);">CAPITAL PRESERVATION</span>
         </div>
         <h3 style="font-size: 1.3rem; margin: 0.5rem 0;">Market Choppy — Wait for High-Probability Setup</h3>
@@ -1418,6 +1342,139 @@ function renderHomeView() {
           Capital is safely preserved in cash.
         </p>
         <button class="btn btn-outline" onclick="switchView('scanner')">Review All Watched Stocks</button>
+      </div>
+    `;
+  } else {
+    const cardsHtml = topStocks.map((stock, index) => {
+      const isTop1 = index === 0;
+      const rankPillClass = isTop1 ? 'rank-pill top-1' : 'rank-pill top-n';
+      const rankTitle = isTop1
+        ? '🥇 #1 TOP RECOMMENDATION'
+        : (index === 1 ? '🥈 #2 PICK' : (index === 2 ? '🥉 #3 PICK' : `🏅 #${index + 1} PICK`));
+
+      const horizonDuration = is1DayMode ? (stock.btstHold || "1 Day") : (stock.swingHold || "2–4 Days");
+      const entryMin = is1DayMode ? stock.btstEntryMin : stock.swingEntryMin;
+      const entryMax = is1DayMode ? stock.btstEntryMax : stock.swingEntryMax;
+      const target = is1DayMode ? stock.btstTarget : stock.swingTarget;
+      const targetGain = is1DayMode ? stock.btstTargetGainPct : stock.swingTargetGainPct;
+      const stopLoss = is1DayMode ? stock.btstStopLoss : stock.swingStopLoss;
+      const stopLossPct = is1DayMode ? stock.btstStopLossPct : stock.swingStopLossPct;
+
+      const plannedRiskRupees = (AppState.virtualCash * (AppState.riskPct / 100));
+      const perShareRisk = Math.max(1, stock.cmp - stopLoss);
+      const recommendedShares = Math.max(1, Math.floor(plannedRiskRupees / perShareRisk));
+      const totalCapitalRequired = (recommendedShares * stock.cmp);
+
+      const isPositive = stock.change >= 0;
+      const changeClass = isPositive ? 'up' : 'down';
+      const changeSign = isPositive ? '+' : '';
+
+      const catBadge = stock.category === 'midcap'
+        ? `<span class="badge" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8; font-size: 0.65rem; padding: 2px 7px;">🚀 MIDCAP</span>`
+        : `<span class="badge" style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; font-size: 0.65rem; padding: 2px 7px;">🏢 NIFTY 50</span>`;
+
+      return `
+        <div class="card action-hero-card ranked-pick ${isTop1 ? 'pick-top-1' : ''}">
+          <div class="hero-header">
+            <div class="hero-title-group">
+              <span class="${rankPillClass}">${rankTitle}</span>
+              <span class="regime-badge ${isBadMarket ? 'bad' : 'good'}">
+                ${isBadMarket ? '🛡️ SAFE HAVEN' : '🚀 STEADY GROWING'}
+              </span>
+              ${catBadge}
+            </div>
+            <span class="badge" style="background: rgba(16, 185, 129, 0.16); color: var(--profit); border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.72rem; font-weight: 700;">
+              🎯 ${stock.tenYearWinRate}% Win Rate
+            </span>
+          </div>
+
+          <div class="stock-headline">
+            <div>
+              <span class="stock-symbol">${stock.symbol}</span>
+              <span class="stock-company">${stock.name} — ${stock.sector}</span>
+            </div>
+            <div style="text-align: right;">
+              <span class="stock-cmp">₹${stock.cmp.toFixed(2)}</span>
+              <span class="stock-change-badge ${changeClass}">${changeSign}${stock.change.toFixed(2)}%</span>
+            </div>
+          </div>
+
+          <!-- Trade Specs Grid -->
+          <div class="trade-specs-grid">
+            <div class="spec-box">
+              <div class="spec-label">Best Price to Buy</div>
+              <div class="spec-value primary">₹${entryMin.toFixed(0)} - ₹${entryMax.toFixed(0)}</div>
+              <div class="spec-sub">Buy at CMP / Market Open</div>
+            </div>
+            <div class="spec-box">
+              <div class="spec-label">Sell Here for Profit</div>
+              <div class="spec-value profit">₹${target.toFixed(0)}</div>
+              <div class="spec-sub profit">+${targetGain.toFixed(1)}% Profit (${horizonDuration})</div>
+            </div>
+            <div class="spec-box">
+              <div class="spec-label">Safety Price (Avoid Loss)</div>
+              <div class="spec-value loss">₹${stopLoss.toFixed(0)}</div>
+              <div class="spec-sub loss">-${stopLossPct.toFixed(1)}% Max Allowed Loss</div>
+            </div>
+            <div class="spec-box">
+              <div class="spec-label">How Many Shares to Buy</div>
+              <div class="spec-value">${recommendedShares} Shares</div>
+              <div class="spec-sub">Cost: ₹${totalCapitalRequired.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+            </div>
+          </div>
+
+          <!-- 10-Year Backtest Proof Strip -->
+          <div class="proof-strip">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--profit); flex-shrink: 0;">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <div>
+              <strong>10-Year Track Record:</strong> Won <strong>${stock.tenYearWinRate}% of the time</strong> (${Math.round(stock.totalTested * stock.tenYearWinRate / 100)} wins out of ${stock.totalTested} events).
+              <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 2px;">${stock.reason}</div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="hero-actions-row">
+            <button class="btn btn-primary" onclick="openPaperBuyModal('${stock.symbol}')" style="height: 46px; font-size: 0.92rem;">
+              ⚡ Practice Buy (Zero Risk)
+            </button>
+            <button class="btn btn-outline" onclick="openDetailView('${stock.symbol}')" style="height: 44px; font-size: 0.88rem;">
+              📊 View Details &amp; Chart
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    heroContainer.innerHTML = `
+      <div class="today-top-picks-header">
+        <div class="today-top-picks-title">
+          <span class="pulse-badge"><span class="pulse-dot"></span> TODAY'S TOP 5 BUY PLANS</span>
+          <span class="regime-badge ${isBadMarket ? 'bad' : 'good'}">
+            ${isBadMarket ? '🛡️ DEFENSIVE MARKET ROTATION' : '🚀 GROWTH LEADERS IN UPTREND'}
+          </span>
+        </div>
+        <span class="hero-mode-badge">${modeLabel}</span>
+      </div>
+      <div class="today-top-picks-subtitle">
+        Here are today's <strong>top 5 highest-probability stock setups</strong> ranked by 10-year track record. You can practice buy any or all of these 5 stocks directly below.
+      </div>
+
+      ${cardsHtml}
+
+      <!-- Discovery Banner for Finding More Stocks -->
+      <div class="find-more-banner">
+        <div class="find-more-banner-left">
+          <div class="find-more-banner-title">🔍 Looking for more than 5 stocks?</div>
+          <div class="find-more-banner-text">
+            Explore all 18+ monitored NSE stocks with custom sector filters and technical indicators on the Find Stocks page.
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="switchView('scanner')" style="width: auto; padding: 0.55rem 1.15rem; font-size: 0.84rem;">
+          Go to Find Stocks →
+        </button>
       </div>
     `;
   }

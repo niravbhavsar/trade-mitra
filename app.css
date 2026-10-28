@@ -1574,6 +1574,11 @@ body.light-theme .startup-lock-overlay {
   flex-wrap: wrap;
 }
 
+.hero-actions-row .btn {
+  flex: 1;
+  min-width: 180px;
+}
+
 @media (max-width: 480px) {
   body {
     padding-bottom: 75px; /* Space for bottom nav */
@@ -2274,5 +2279,129 @@ body.light-theme .tm-toast {
     padding: 0 1rem 1rem 1rem;
   }
 }
+
+/* ==========================================================================
+   TODAY'S PLAN: Top 5 Best High-Probability Stocks Redesign
+   ========================================================================== */
+.today-top-picks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 0.65rem;
+}
+
+.today-top-picks-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.today-top-picks-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+}
+
+.action-hero-card.ranked-pick {
+  margin-bottom: 1.25rem;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.action-hero-card.ranked-pick:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(14, 165, 233, 0.18);
+}
+
+.action-hero-card.ranked-pick.pick-top-1 {
+  border-color: rgba(245, 158, 11, 0.55);
+  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.12);
+}
+
+.rank-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rank-pill.top-1 {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(234, 179, 8, 0.3));
+  border: 1px solid rgba(245, 158, 11, 0.7);
+  color: #fbbf24;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.rank-pill.top-n {
+  background: rgba(14, 165, 233, 0.18);
+  border: 1px solid rgba(14, 165, 233, 0.45);
+  color: var(--primary);
+}
+
+.find-more-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: rgba(14, 165, 233, 0.08);
+  border: 1px dashed rgba(14, 165, 233, 0.35);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.25rem;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.find-more-banner-left {
+  flex: 1;
+  min-width: 240px;
+}
+
+.find-more-banner-title {
+  font-weight: 700;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  margin-bottom: 3px;
+}
+
+.find-more-banner-text {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.stock-change-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.stock-change-badge.up {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--profit);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.stock-change-badge.down {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--loss);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
 
 
