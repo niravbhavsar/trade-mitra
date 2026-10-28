@@ -2508,6 +2508,22 @@ function openPaperBuyModal(symbol) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const qtyInput = document.getElementById('modal-buy-qty');
+  if (qtyInput) {
+    qtyInput.addEventListener('input', () => {
+      const rawSymbol = document.getElementById('modal-buy-symbol')?.textContent?.split(' ')[0];
+      const pool = getActiveStockPool();
+      const stock = pool.find(s => s.symbol === rawSymbol);
+      if (!stock) return;
+      const qty = Math.max(1, parseInt(qtyInput.value) || 1);
+      const totalCost = qty * stock.cmp;
+      const totalCapEl = document.getElementById('modal-buy-total-cap');
+      if (totalCapEl) {
+        totalCapEl.textContent = `₹${totalCost.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+      }
+    });
+  }
+
   const confirmBuyBtn = document.getElementById('btn-confirm-paper-buy');
   if (confirmBuyBtn) {
     confirmBuyBtn.addEventListener('click', () => {
@@ -3292,5 +3308,26 @@ function startLivePriceTicker() {
     }
   });
 }
+
+// Global Window Exports for Inline HTML Handlers
+window.closeModal = closeModal;
+window.setTradingMode = setTradingMode;
+window.toggleManualMoodPanel = toggleManualMoodPanel;
+window.setMarketCondition = setMarketCondition;
+window.shareProfitOnWhatsApp = shareProfitOnWhatsApp;
+window.toggleSettingsAccordion = toggleSettingsAccordion;
+window.setThemeMode = setThemeMode;
+window.togglePinVisibility = togglePinVisibility;
+window.saveMasterPin = saveMasterPin;
+window.openPaperBuyModal = openPaperBuyModal;
+window.openDetailView = openDetailView;
+window.switchView = switchView;
+window.trailStopToCost = trailStopToCost;
+window.simulatePositionPrice = simulatePositionPrice;
+window.closePaperTrade = closePaperTrade;
+window.showToast = showToast;
+window.showCustomAlert = showCustomAlert;
+window.showCustomConfirm = showCustomConfirm;
+
 
 
