@@ -1,5 +1,16 @@
 [build]
   publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/batch"
+  to = "/.netlify/functions/batch"
+  status = 200
+
+[[redirects]]
+  from = "/api/quote/:symbol"
+  to = "/.netlify/functions/quote?symbol=:symbol"
+  status = 200
 
 [[redirects]]
   from = "/*"
@@ -17,3 +28,4 @@
   for = "/sw.js"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
+

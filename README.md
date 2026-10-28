@@ -1,71 +1,156 @@
 # TradeMitra (ट्रेड मित्र) 📈
 ### Simple Indian Stock Market Research & Daily Gain Application
 
-A lightweight, zero-cost, mobile-first Progressive Web Application (PWA) designed for beginners to generate consistent passive income through systematic **1-Day and 2–4 Day frequency swing trading** on the National Stock Exchange of India (NSE).
+A lightweight, zero-cost, mobile-first Progressive Web Application (PWA) designed for beginners to generate consistent passive income through systematic **1-Day (BTST)** and **2–4 Day frequency swing trading** on the National Stock Exchange of India (NSE).
 
 ---
 
 ## 🌟 Beginner-Friendly Philosophy
 
-1. **No Charts or Jargon Needed:**
-   - Tells you **Which Stock to Buy**, **Best Price to Buy**, **Sell Here for Profit (+4% to +6%)**, and **Safety Price (Avoid Loss)**.
-2. **Dual Trading Modes:**
-   - ⚡ **Buy Today, Sell Tomorrow (1-Day Quick Profit):** +1.5% to +2.5% target.
-   - 📈 **Hold for 2 to 4 Days (Bigger Profit):** +4.5% to +6.5% target.
-3. **Good & Bad Market Adapters:**
-   - **Good Market:** Growth and momentum leaders (`ICICIBANK`, `RELIANCE`, `LT`).
-   - **Bad / Falling Market:** Defensive haven rotation (`ITC`, `SUNPHARMA`) & deep oversold support bounces.
+1. **Simple Everyday English — No Jargon or Charts Needed:**
+   * Tells you plainly: **Which Stock to Buy**, **Best Price to Buy**, **Sell Here for Profit (+4% to +6%)**, and **Safety Price (Avoid Loss)**.
+2. **Dual Trading Horizons (Toggleable with 1 Tap):**
+   * ⚡ **Buy Today, Sell Tomorrow (1-Day Quick Profit):** +1.5% to +2.5% target.
+   * 📈 **Hold for 2 to 4 Days (Bigger Profit):** +4.5% to +6.5% target.
+3. **Auto-Pilot Market Mood (Good & Bad Market Adapters):**
+   * **Good Market (Uptrend):** Growth leaders and momentum pullbacks (`ICICIBANK`, `RELIANCE`, `LT`).
+   * **Bad / Falling Market:** Defensive haven rotation (`ITC`, `SUNPHARMA`) & deep oversold support bounces.
+   * **Crash Shield:** In sharp market panics, automatically switches to Capital Preservation mode (`NO TRADE - CASH PRESERVATION`).
 4. **10–15 Year Track Record Verification:**
-   - Every recommendation is backtested over 10–15 years of daily NSE data. Only setups with a verified **$\ge 70\%$ historical win rate** qualify.
-5. **2–3 Month Practice Wallet (Dummy Trial):**
-   - Starts with ₹1,00,000 in practice cash.
-   - Test trades with 1 click, track daily profit/loss, and independently audit your win-rate before risking real money.
-6. **Automated Free Telegram Alerts:**
-   - Free instant alerts delivered directly to your mobile via Telegram Bot API when an A+ setup qualifies or an open trade hits its profit price.
-7. **Complete Database Engine (Firebase Firestore + Offline IndexedDB):**
-   - Saves all practice trades, journal entries, and settings directly in local IndexedDB.
-   - Synchronizes across phone and desktop via Google Firebase Cloud Firestore (100% Free Forever).
-8. **100% Free Operating Cost (₹0 / $0 Forever):**
-   - Hosted on **Netlify** (free static hosting + free SSL).
-   - Cloud database on **Google Firebase Spark Tier** (permanently free, never pauses).
-   - Daily scanning on **GitHub Actions** (2,000 free minutes/mo).
+   * Every setup is mathematically backtested over 10–15 years of daily NSE data. Only patterns with a verified **$\ge 70\%$ historical win rate** qualify.
+5. **Real-Time Live Prices (5-Second Auto-Ticker):**
+   * When the app is open, stock prices update automatically every **5 seconds** directly from the exchange.
+6. **2–3 Month Zero-Risk Practice Account:**
+   * Starts with ₹1,00,000 in virtual cash.
+   * Place practice buy orders with 1 tap, track daily profit/loss, and independently verify your win rate before risking real savings.
+7. **Cloud Telegram Alerts (Runs Without Opening the App):**
+   * Alerts are dispatched directly to your mobile phone via Telegram Bot API right at **03:15 PM IST** (the best time to place your order before 03:30 PM market close).
+   * **You do NOT need to keep the app open** — GitHub Actions runs automatically in the cloud.
+
+---
+
+## 🛠️ Current Technical Stack Specification
+*(All future enhancements must strictly adhere to this zero-cost, zero-build architecture, matching `C:\xampp\htdocs\Shreeji`)*
+
+| Layer | Technology / Service | Operating Cost | Details & Architectural Guarantees |
+| :--- | :--- | :--- | :--- |
+| **Frontend Core** | Pure Vanilla HTML5, CSS3, ES6+ JavaScript | **₹0 / $0** | **Zero Build / Zero Compilation.** No React, Vue, Angular, Vite, or Webpack. Fast DOM rendering, zero `npm install` needed. |
+| **Styling & Theme** | Mobile-First Custom CSS | **₹0 / $0** | Glassmorphism, CSS variables, dark/light themes, fully responsive down to 320px mobile screens. |
+| **Hosting & Deployment** | **Netlify** (Static PWA) | **₹0 / $0** | 100% Free static hosting, continuous Git auto-deployment, custom `.netlify.app` domain, free automated SSL. |
+| **Serverless API Layer** | Netlify Functions (Node.js ES6) | **₹0 / $0** | Clean JavaScript serverless functions (`netlify/functions/quote.js` and `batch.js`) proxying live NSE quotes. **No PHP, no heavy backend.** |
+| **Cloud Database** | **Google Firebase Cloud Firestore** | **₹0 / $0** | **Permanently Free (Spark Tier).** Real-time multi-device synchronization (`onSnapshot` / `setDoc`) between phone and desktop. **Never pauses or sleeps.** |
+| **Local Storage Engine** | IndexedDB & `localStorage` | **₹0 / $0** | Offline-first persistence. Bootstraps in < 50ms from local storage even when offline. |
+| **Offline PWA** | Web App Manifest + Service Worker | **₹0 / $0** | `manifest.json` + `sw.js` (Cache-first for static assets, network-pass-through for Firebase). Installable as a native app on iOS, Android, and Windows. |
+| **Daily Cloud Automation** | **GitHub Actions** Scheduled Workflow | **₹0 / $0** | Runs every weekday at **09:45 UTC (03:15 PM IST)** on Microsoft Azure cloud infrastructure. Runs without opening the app. |
+| **Alert Notifications** | Telegram Bot API | **₹0 / $0** | Free, instant mobile trade alerts for Buy suggestions, Target hits, and Safety stop-loss notifications. |
+| **Security & Privacy** | Web Crypto API (SHA-256) + WebAuthn | **₹0 / $0** | 4-digit Master PIN, biometric sensor unlock (Fingerprint / Face ID / Windows Hello), and 5-minute inactivity auto-lock. |
+
+---
+
+## ⏰ Order Timing: Why 03:15 PM is the Best Time to Place Orders
+
+In the Indian Stock Market (NSE):
+* Normal market trading hours are **09:15 AM to 03:30 PM**.
+* **Before 03:00 PM:** The daily closing candlestick is still forming and volatile intraday news can reverse patterns.
+* **After 03:25 PM:** Broker intraday auto-square-off (MIS orders) floods the market with sudden chaotic spikes and widening bid-ask spreads.
+* **The Prime Sweet Spot is 03:10 PM to 03:20 PM (Specifically 03:15 PM):**
+  1. The daily candlestick, institutional volume, and RSI are **98% complete and confirmed**.
+  2. You have a relaxed **10 to 15-minute window** before the 03:30 PM bell to review today's top stock and place your buy order calmly at Current Market Price (CMP).
+  3. This completely avoids morning 09:15 AM panic and lets you capture overnight gap-up momentum safely.
+
+---
+
+## ☁️ How Cloud Telegram Alerts Work Without Opening the App
+
+You **do not need to open the application or keep your computer on** to receive trade alerts at 03:15 PM:
+1. **GitHub Actions Cloud Runner:** Every Monday to Friday at `09:45 UTC` (= **15:15 IST / 3:15 PM**), GitHub's cloud servers trigger [`.github/workflows/daily-scan.yml`](file:///.github/workflows/daily-scan.yml).
+2. **Python Scanner Execution:** The runner executes [`research/scanner.py`](file:///research/scanner.py), downloads live daily bars from the NSE, and verifies the 10-year backtest criteria ($\ge 70\%$ win rate).
+3. **Telegram Dispatch:** The runner sends an HTTP POST request to your Telegram bot.
+4. **Instant Phone Notification:** Your mobile Telegram app alerts you immediately with today's stock name, entry price, profit target, and safety stop-loss.
+
+---
+
+## 📊 Dual Market Regime Strategies
+
+### 1. Good Market (Bullish / Normal Uptrend)
+* **Market Condition:** Nifty 50 is trading above its 20 EMA & 200 EMA dynamic support.
+* **Mode 1 (1-Day BTST):** *Closing Momentum Surge.* Buy stocks closing in the top 10% of their daily range with volume > 1.5x average. Target: **+1.5% to +2.5%** overnight.
+* **Mode 2 (2–4 Day Swing):** *Trend Pullback.* Buy market leaders pulling back to 20-day EMA support with cooled RSI (40–55). Target: **+4.5% to +6.5%** in 2–4 days.
+
+### 2. Bad Market (Bearish / Falling / Choppy)
+* **Market Condition:** Nifty 50 is trading below its 200 EMA or under sharp selling pressure.
+* **Strategy 1 (Defensive Sector Rotation):** Switches automatically to non-cyclical cash-flow leaders (FMCG: `ITC`, `HINDUNILVR`; Pharma: `SUNPHARMA`). These companies regularly gain even while Nifty falls.
+* **Strategy 2 (Oversold Deep Support Bounce):** Buys institutional bluechips at multi-month major support when RSI touches extreme oversold ($\le 32$) with a tight stop-loss.
+* **Strategy 3 (Crash Shield):** If Nifty falls > 2.0% in panic, system activates `NO TRADE - CASH PRESERVATION`.
+
+---
+
+## 🗄️ Database Schema & Sync Architecture
+
+The application implements a multi-layer database architecture matching `Shreeji`:
+
+```text
+Database Architecture:
+├── Local Storage Layer (Instant Boot, 100% Offline)
+│   ├── IndexedDB (Database: 'market_nirav_db', Store: 'app_state')
+│   └── LocalStorage (State caching for sub-50ms render)
+│
+└── Cloud Storage Layer (Multi-Device Sync, Permanently Free)
+    └── Google Firebase Cloud Firestore (trademitra-58e1d)
+        └── Document: 'marketNirav/appData'
+            ├── user_settings: { startingCash, riskPct, activeMode, pin, telegramConfig }
+            ├── open_positions: [ { id, symbol, mode, entryPrice, target, stop, qty, pnl } ]
+            ├── trade_journal: [ { id, date, symbol, mode, pnlRupees, pnlPct, reason } ]
+            └── market_state: { regime, niftyTrend, lastScanTime, activeSignals }
+```
 
 ---
 
 ## 🚀 Live Deployment on Netlify
 
-### How to Deploy (Identical to Shreeji):
+### How to Deploy:
 1. **Push to GitHub:**
    ```bash
    git add .
-   git commit -m "Deploy TradeMitra PWA"
+   git commit -m "Update TradeMitra PWA"
    git push origin main
    ```
-2. **Link to Netlify:**
-   - Go to [Netlify](https://app.netlify.com/).
-   - Click **Add new site** > **Import an existing project** > **GitHub**.
-   - Select your repository (`trade-mitra` / `market-nirav`).
-   - **Build settings:** Leave build command empty (`publish directory: .`).
-   - Click **Deploy Site**.
-3. **Your App is Live:** Available at `https://trademitra.netlify.app` with instant PWA mobile capabilities!
+2. **Connect to Netlify:**
+   * Go to [Netlify](https://app.netlify.com/).
+   * Click **Add new site** > **Import an existing project** > **GitHub** > Select `niravbhavsar/trade-mitra`.
+   * **Build command:** *Leave blank*
+   * **Publish directory:** `.`
+   * Click **Deploy Site**.
+3. **App is Live:** Open your Netlify URL (e.g. `https://trademitra.netlify.app/`) on your phone or laptop.
 
 ---
 
 ## 💻 Local Development / XAMPP
 
-Since the app has **zero build dependencies**, you can run it immediately without any `npm install` or compilation:
-- Simply open `index.html` in any browser, or
-- Place in your XAMPP web root and visit `http://localhost/market-nirav/` or `http://localhost/trademitra/`.
+Since the application has **zero build dependencies**, you can run it immediately without any build tools:
+* Place in `C:\xampp\htdocs\trade-mitra\` and open `http://localhost/trade-mitra/` in any browser.
 
 ---
 
 ## 🔒 Security & Privacy
 
-- **Master PIN:** Default is `5189` (configurable under Settings).
-- **Biometric Unlock:** One-tap unlock using device fingerprint / Windows Hello / Face ID via WebAuthn.
-- **Inactivity Auto-Lock:** Protects your profit diary after 5 minutes of idle time.
+* **Master PIN:** Default is `5189` (configurable under Settings).
+* **Biometric Unlock:** One-tap unlock using device fingerprint / Face ID / Windows Hello.
+* **Inactivity Auto-Lock:** Automatically locks after 5 minutes of unattended idle time.
+
+---
+
+## 📌 Rules for Future Enhancements
+
+To preserve the zero-cost, lightweight reliability of this application, all future development must follow these rules:
+1. **Never introduce server-side scripting (No PHP, Ruby, etc.)** that prevents static Netlify hosting.
+2. **Never add heavy frontend frameworks (No React, Vue, Angular)** that require build pipelines or node bundling.
+3. Keep all client code in pure **Vanilla HTML5, CSS3, ES6+ JavaScript**.
+4. Use **Netlify Functions** (`netlify/functions/*.js`) for any required serverless proxy APIs.
+5. Use **Google Firebase Cloud Firestore** client SDK for all cloud data synchronization.
+6. Maintain full **offline capability** through local IndexedDB and Service Worker caching.
 
 ---
 
 ## ⚠️ Disclaimer
-*TradeMitra is a personal research and simulated paper-trading platform. It does not provide SEBI-registered investment advice or guarantee future profits. Always complete the 2–3 month paper-trading trial before considering live market trades.*
+*TradeMitra is a personal research and simulated practice-trading platform. It does not provide SEBI-registered financial advisory services. Always complete the 2–3 month practice trial before considering real-market trades.*

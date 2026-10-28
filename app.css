@@ -1886,3 +1886,350 @@ body.light-theme .tm-toast {
   line-height: 1;
 }
 
+/* ==========================================================================
+   ENHANCEMENTS: Accordion, Mobile Badges, Modal Cross, Re-scan & Test Buy
+   ========================================================================== */
+
+/* 0. Live Real-Time 5s Auto-Ticker Badge */
+.live-ticker-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: var(--radius-full);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--profit);
+  letter-spacing: 0.5px;
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--profit);
+  animation: pulseLiveDot 1.4s ease-in-out infinite;
+}
+
+@keyframes pulseLiveDot {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 4px rgba(16, 185, 129, 0.8); }
+  50% { opacity: 0.35; transform: scale(0.85); box-shadow: none; }
+}
+
+/* 1. Settings Collapsible Accordion (1 Open at a time, 1st open by default) */
+.settings-accordion-card {
+  margin-bottom: 0.85rem !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.settings-accordion-card.active {
+  border-color: rgba(14, 165, 233, 0.45);
+  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.08);
+}
+
+.settings-accordion-header {
+  width: 100%;
+  padding: 1.05rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-main);
+  user-select: none;
+  transition: background 0.2s ease;
+}
+
+.settings-accordion-header:hover {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.settings-accordion-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-main);
+}
+
+.settings-sec-icon {
+  font-size: 1.15rem;
+}
+
+.settings-accordion-chevron {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.settings-accordion-card.active .settings-accordion-chevron {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+.settings-accordion-body {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, padding 0.25s ease;
+  padding: 0 1.25rem;
+}
+
+.settings-accordion-card.active .settings-accordion-body {
+  max-height: 2400px;
+  opacity: 1;
+  padding: 0 1.25rem 1.25rem 1.25rem;
+}
+
+/* 2. Modal Cross / Close Button */
+.close-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  font-size: 1.35rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.close-btn:hover {
+  background: rgba(239, 68, 68, 0.18);
+  color: var(--loss);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.custom-dialog-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+}
+
+/* 3. Re-scan Now Banner & Button */
+.rescan-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.15rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.rescan-info {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rescan-dot {
+  margin: 0 2px;
+}
+
+#btn-manual-rescan {
+  width: auto;
+  white-space: nowrap;
+  padding: 0.45rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+#btn-rescan-icon.spinning {
+  display: inline-block;
+  animation: spinReScan 0.85s linear infinite;
+}
+
+@keyframes spinReScan {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 4. Table Test Buy Button */
+.btn-table-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.btn-table-test-buy {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(14, 165, 233, 0.5) !important;
+  font-weight: 700 !important;
+  padding: 0.35rem 0.75rem !important;
+  font-size: 0.76rem !important;
+  border-radius: var(--radius-sm) !important;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-table-test-buy:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+}
+
+/* 5. Mobile Adjustments for 3:15 PM Action Check & Steady Growing Company */
+.alarm-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.alarm-time-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(245, 158, 11, 0.22);
+  color: #f59e0b;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  white-space: nowrap;
+}
+
+.alarm-banner-text {
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text-main);
+}
+
+.hero-mode-badge {
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@media (max-width: 580px) {
+  /* Alarm Banner Responsive */
+  .alarm-banner {
+    padding: 0.75rem 0.85rem !important;
+    gap: 0.5rem !important;
+  }
+  .alarm-banner-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    width: 100%;
+  }
+  .alarm-time-pill {
+    padding: 3px 8px;
+    font-size: 0.74rem;
+    margin-bottom: 2px;
+  }
+  .alarm-banner-text {
+    font-size: 0.76rem;
+    line-height: 1.35;
+  }
+  .alarm-status-pill, #market-countdown-pill {
+    align-self: flex-start;
+    font-size: 0.7rem !important;
+  }
+
+  /* Hero Header & Steady Growing Company Pill */
+  .hero-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.55rem !important;
+    margin-bottom: 0.85rem !important;
+  }
+  .hero-title-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+  }
+  .pulse-badge {
+    padding: 3px 8px;
+    font-size: 0.68rem;
+    margin: 0;
+  }
+  .regime-badge {
+    padding: 3px 9px;
+    font-size: 0.68rem;
+    margin: 0;
+    line-height: 1.3;
+    white-space: normal;
+    display: inline-flex;
+    align-items: center;
+  }
+  .hero-mode-badge {
+    align-self: flex-start;
+    font-size: 0.72rem;
+  }
+
+  /* Re-scan Card on Mobile */
+  .rescan-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.75rem;
+    gap: 0.65rem;
+  }
+  .rescan-info {
+    font-size: 0.75rem;
+  }
+  #btn-manual-rescan {
+    width: 100% !important;
+    padding: 0.6rem 1rem;
+    font-size: 0.82rem;
+  }
+
+  /* Settings Accordion Header on Mobile */
+  .settings-accordion-header {
+    padding: 0.85rem 1rem;
+  }
+  .settings-accordion-title {
+    font-size: 0.92rem;
+  }
+  .settings-accordion-body {
+    padding: 0 1rem;
+  }
+  .settings-accordion-card.active .settings-accordion-body {
+    padding: 0 1rem 1rem 1rem;
+  }
+}
+
+
