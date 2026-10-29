@@ -1705,13 +1705,13 @@ function renderOpenPositionsList() {
             <span>🧪 Practice Simulator (Test scenarios anytime):</span>
           </div>
           <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-            <button class="btn btn-outline" style="flex: 1; min-width: 105px; padding: 4px 6px; font-size: 0.72rem;" onclick="simulatePositionPrice('${pos.id}', 2.5)" title="Simulates a 2.5% move and triggers the auto-trailing stop to cost">
+            <button class="btn btn-outline" style="flex: 1; min-width: 105px; padding: 4px 6px; font-size: 0.72rem;" onclick="simulatePositionPrice('${pos.id}', 'breakeven')" title="Simulates a +2.5% move, raises stop-loss to cost, and dispatches a Zero-Risk Telegram alert">
               ⚡ Test +2.5% Move
             </button>
-            <button class="btn btn-outline" style="flex: 1; min-width: 95px; padding: 4px 6px; font-size: 0.72rem; color: var(--profit);" onclick="simulatePositionPrice('${pos.id}', 4.2)" title="Simulates price hitting your profit target">
+            <button class="btn btn-outline" style="flex: 1; min-width: 95px; padding: 4px 6px; font-size: 0.72rem; color: var(--profit);" onclick="simulatePositionPrice('${pos.id}', 'target')" title="Simulates price hitting your profit target and dispatches a Sell Telegram alert">
               🎯 Test Target Hit
             </button>
-            <button class="btn btn-outline" style="flex: 1; min-width: 95px; padding: 4px 6px; font-size: 0.72rem; color: var(--loss);" onclick="simulatePositionPrice('${pos.id}', -1.4)" title="Simulates price touching stop loss">
+            <button class="btn btn-outline" style="flex: 1; min-width: 95px; padding: 4px 6px; font-size: 0.72rem; color: var(--loss);" onclick="simulatePositionPrice('${pos.id}', 'stop')" title="Simulates price touching stop loss and dispatches a Capital Protection Telegram alert">
               🛑 Test Stop Hit
             </button>
           </div>
@@ -1730,41 +1730,71 @@ function renderOpenPositionsList() {
   }).join('');
 }
 
-function trailStopToCost(positionId) {
+async function trailStopToCost(positionId) {
   const pos = AppState.openPositions.find(p => p.id === positionId);
   if (!pos) return;
   pos.stopLoss = pos.entryPrice;
   pos.isTrailingBreakeven = true;
-  DB.saveState();
-  showToast(`🛡️ Breakeven Protection Activated! Stop-Loss for ${pos.symbol} raised to ₹${pos.entryPrice.toFixed(0)}. This trade is now 100% Zero-Risk.`, "success", 4500);
+  pos.breakevenAlertSent = false;
+  DB.saveLocalOnly(DB.buildPayload());
+  await dispatchBreakevenAlert(pos);
   renderHomeView();
 }
 
-function simulatePositionPrice(positionId, targetGainPct) {
+async function simulatePositionPrice(positionId, scenario) {
   const pos = AppState.openPositions.find(p => p.id === positionId);
   if (!pos) return;
-  const newPrice = pos.entryPrice * (1 + targetGainPct / 100);
-  pos.currentPrice = newPrice;
-  pos.currentPnl = (newPrice - pos.entryPrice) * pos.qty;
-  pos.pnlPct = targetGainPct;
 
-  if (targetGainPct >= 1.5 && !pos.isTrailingBreakeven) {
+  const isBreakeven = scenario === 'breakeven' || scenario === 2.5;
+  const isTarget = scenario === 'target' || scenario === 4.2 || (typeof scenario === 'number' && scenario >= 3.0);
+  const isStop = scenario === 'stop' || scenario === -1.4 || (typeof scenario === 'number' && scenario < 0);
+
+  if (isBreakeven) {
+    // 1. Simulate +2.5% Move & Raise Stop to Cost
+    const newPrice = Math.round((pos.entryPrice * 1.025) * 10) / 10;
+    pos.currentPrice = newPrice;
+    pos.currentPnl = (newPrice - pos.entryPrice) * pos.qty;
+    pos.pnlPct = 2.5;
     pos.stopLoss = pos.entryPrice;
     pos.isTrailingBreakeven = true;
-    showToast(`📈 Simulated Price moved to ₹${newPrice.toFixed(0)} (+${targetGainPct}%). 🛡️ Institutional Trailing Stop triggered! Stop-loss raised to ₹${pos.entryPrice.toFixed(0)} (Zero-Risk Trade).`, "success", 5000);
-  } else if (targetGainPct >= 3.5) {
-    showToast(`🎯 Target Hit! Price touched ₹${newPrice.toFixed(0)} (+${targetGainPct}%). Dispatching Telegram target alert...`, "success", 5000);
-    pos.targetAlertSent = false;
-    checkAndDispatchPositionAlerts(pos);
-  } else if (targetGainPct < 0) {
-    showToast(`🛑 Stop Simulation: Price dipped to ₹${newPrice.toFixed(0)} (${targetGainPct}%). Dispatching Telegram stop-loss alert...`, "warning", 5000);
-    pos.stopAlertSent = false;
-    checkAndDispatchPositionAlerts(pos);
+    pos.breakevenAlertSent = false; // Reset so test ALWAYS dispatches
+
+    showToast(`📈 Simulated Price moved to ₹${newPrice.toFixed(0)} (+2.5%). 🛡️ Trailing Stop to Cost activated! Sending Telegram Alert...`, "success", 5000);
+    await dispatchBreakevenAlert(pos);
+  } else if (isTarget) {
+    // 2. Simulate Target Hit: Guarantees price meets or exceeds target
+    const targetThreshold = (pos.target && pos.target > pos.entryPrice) ? pos.target : pos.entryPrice * 1.045;
+    const newPrice = Math.round((targetThreshold * 1.002) * 10) / 10;
+    pos.currentPrice = newPrice;
+    pos.currentPnl = (newPrice - pos.entryPrice) * pos.qty;
+    pos.pnlPct = ((newPrice - pos.entryPrice) / pos.entryPrice) * 100;
+    pos.targetAlertSent = false; // Reset so test ALWAYS dispatches
+
+    showToast(`🎯 Simulated Target Hit! Price touched ₹${newPrice.toFixed(0)} (+${pos.pnlPct.toFixed(1)}%). Sending Target Sell Telegram Alert...`, "success", 5000);
+    await dispatchTargetReachedAlert(pos);
+  } else if (isStop) {
+    // 3. Simulate Safety Stop Loss Hit: Guarantees price breaches safety stop
+    const stopThreshold = (pos.stopLoss && pos.stopLoss > 0) ? pos.stopLoss : pos.entryPrice * 0.98;
+    const newPrice = Math.round((stopThreshold * 0.998) * 10) / 10;
+    pos.currentPrice = newPrice;
+    pos.currentPnl = (newPrice - pos.entryPrice) * pos.qty;
+    pos.pnlPct = ((newPrice - pos.entryPrice) / pos.entryPrice) * 100;
+    pos.stopAlertSent = false; // Reset so test ALWAYS dispatches
+
+    showToast(`🛑 Simulated Stop Loss Hit: Price dipped to ₹${newPrice.toFixed(0)} (${pos.pnlPct.toFixed(1)}%). Sending Capital Safety Telegram Alert...`, "warning", 5000);
+    await dispatchStopLossAlert(pos);
   } else {
-    showToast(`📈 Price simulated at ₹${newPrice.toFixed(0)} (${targetGainPct >= 0 ? '+' : ''}${targetGainPct}%).`, "info", 3000);
+    const pct = Number(scenario);
+    const newPrice = pos.entryPrice * (1 + pct / 100);
+    pos.currentPrice = newPrice;
+    pos.currentPnl = (newPrice - pos.entryPrice) * pos.qty;
+    pos.pnlPct = pct;
+    showToast(`📈 Price simulated at ₹${newPrice.toFixed(0)} (${pct >= 0 ? '+' : ''}${pct}%).`, "info", 3000);
   }
-  DB.saveState();
+
+  DB.saveLocalOnly(DB.buildPayload());
   renderHomeView();
+  if (AppState.currentView === 'portfolio') renderPortfolioView();
 }
 
 // ==========================================================================
@@ -3444,61 +3474,127 @@ function applyStockPriceUpdate(stock, newCmp, changePct) {
   });
 }
 
-// Automatic Telegram Alert Watchdog on Target / Stop Loss
-async function checkAndDispatchPositionAlerts(pos) {
+// ==========================================================================
+// 15. Real-Time Telegram Alert Dispatchers (Target, Stop Loss & Zero-Risk Trailing)
+// ==========================================================================
+async function dispatchTargetReachedAlert(pos) {
   const token = (AppState.telegramToken || '').trim();
   const chatId = (AppState.telegramChatId || '').trim();
-  if (!token || !chatId) return;
+  if (!token || !chatId) {
+    showToast("⚠️ Telegram bot token or chat ID is missing in Settings.", "warning", 5000);
+    return false;
+  }
 
   const is1Day = pos.mode === '1day';
   const modeTitle = is1Day ? "⚡ 1-Day BTST" : "📈 2–4 Day Swing";
+  const profitRs = Math.round(pos.currentPnl).toLocaleString('en-IN');
+  const gainPct = pos.pnlPct.toFixed(2);
+  const msg =
+    `🎯 <b>TRADEMITRA: TARGET REACHED! TIME TO SELL</b>\n\n` +
+    `🏢 Stock: <b>${pos.symbol}</b> (${modeTitle})\n` +
+    `🔔 Action: <b>SELL NOW IN REAL MARKET & APP</b>\n\n` +
+    `💵 Current Price: <b>₹${pos.currentPrice.toFixed(2)}</b>\n` +
+    `🎯 Target Price: <b>₹${pos.target.toFixed(2)}</b>\n` +
+    `💰 Profit to Lock: <b style="color:#10b981;">+₹${profitRs} (+${gainPct}%)</b>\n` +
+    `⏱ Holding Duration: <b>Day ${pos.holdDay || 1}</b>\n\n` +
+    `👉 <i>Open your broker app to sell now and pocket your profit, and tap "Sell Now" in TradeMitra to record your win!</i>`;
 
-  // 1. Target Reached Alert (Send on Telegram)
-  if (pos.currentPrice >= pos.target && !pos.targetAlertSent) {
-    pos.targetAlertSent = true;
-    DB.saveState();
+  try {
+    await sendTelegramMessage(token, chatId, msg);
+    showToast(`🎯 Telegram Alert Sent: Target reached for ${pos.symbol}! Time to sell.`, "success", 8000);
+    return true;
+  } catch (e) {
+    showToast(`⚠️ Telegram Target Alert Error: ${e.message}`, "warning", 6000);
+    return false;
+  }
+}
 
-    const profitRs = Math.round(pos.currentPnl).toLocaleString('en-IN');
-    const gainPct = pos.pnlPct.toFixed(2);
-    const msg =
-      `🎯 <b>TRADEMITRA: TARGET REACHED! TIME TO SELL</b>\n\n` +
-      `🏢 Stock: <b>${pos.symbol}</b> (${modeTitle})\n` +
-      `🔔 Action: <b>SELL NOW IN REAL MARKET & APP</b>\n\n` +
-      `💵 Current Price: <b>₹${pos.currentPrice.toFixed(2)}</b>\n` +
-      `🎯 Target Price: <b>₹${pos.target.toFixed(2)}</b>\n` +
-      `💰 Profit to Lock: <b style="color:#10b981;">+₹${profitRs} (+${gainPct}%)</b>\n` +
-      `⏱ Holding Duration: <b>Day ${pos.holdDay || 1}</b>\n\n` +
-      `👉 <i>Open your broker app to sell now and pocket your profit, and tap "Sell Now" in TradeMitra to record your win!</i>`;
-
-    try {
-      await sendTelegramMessage(token, chatId, msg);
-      showToast(`🎯 Telegram Alert Sent: Target reached for ${pos.symbol}! Time to sell.`, "success", 8000);
-    } catch (e) {
-      console.warn("Could not dispatch Telegram alert:", e.message);
-    }
+async function dispatchStopLossAlert(pos) {
+  const token = (AppState.telegramToken || '').trim();
+  const chatId = (AppState.telegramChatId || '').trim();
+  if (!token || !chatId) {
+    showToast("⚠️ Telegram bot token or chat ID is missing in Settings.", "warning", 5000);
+    return false;
   }
 
-  // 2. Safety Stop-Loss Alert (Send on Telegram)
-  if (pos.stopLoss > 0 && pos.currentPrice <= pos.stopLoss && !pos.stopAlertSent) {
+  const is1Day = pos.mode === '1day';
+  const modeTitle = is1Day ? "⚡ 1-Day BTST" : "📈 2–4 Day Swing";
+  const lossRs = Math.round(Math.abs(pos.currentPnl)).toLocaleString('en-IN');
+  const lossPct = Math.abs(pos.pnlPct).toFixed(2);
+  const msg =
+    `🛑 <b>TRADEMITRA: SAFETY STOP TOUCHED</b>\n\n` +
+    `🏢 Stock: <b>${pos.symbol}</b> (${modeTitle})\n` +
+    `⚠️ Action: <b>EXIT NOW (Protect Capital)</b>\n\n` +
+    `💵 Current Price: <b>₹${pos.currentPrice.toFixed(2)}</b>\n` +
+    `🛑 Stop-Loss Safety Level: <b>₹${pos.stopLoss.toFixed(2)}</b>\n` +
+    `🛡️ Loss Cut at: <b style="color:#ef4444;">-₹${lossRs} (-${lossPct}%)</b>\n\n` +
+    `👉 <i>Exit now in your broker app to protect your capital. Safe cash is ready for the next trade!</i>`;
+
+  try {
+    await sendTelegramMessage(token, chatId, msg);
+    showToast(`🛑 Telegram Alert Sent: Stop-loss touched for ${pos.symbol}. Exit now.`, "warning", 8000);
+    return true;
+  } catch (e) {
+    showToast(`⚠️ Telegram Stop Alert Error: ${e.message}`, "warning", 6000);
+    return false;
+  }
+}
+
+async function dispatchBreakevenAlert(pos) {
+  const token = (AppState.telegramToken || '').trim();
+  const chatId = (AppState.telegramChatId || '').trim();
+  if (!token || !chatId) {
+    showToast("⚠️ Telegram bot token or chat ID is missing in Settings.", "warning", 5000);
+    return false;
+  }
+
+  const is1Day = pos.mode === '1day';
+  const modeTitle = is1Day ? "⚡ 1-Day BTST" : "📈 2–4 Day Swing";
+  const msg =
+    `🛡️ <b>TRADEMITRA: ZERO-RISK PROTECTION ACTIVATED</b>\n\n` +
+    `🏢 Stock: <b>${pos.symbol}</b> (${modeTitle})\n` +
+    `⚡ Milestone: <b>+2.5% Profit Move Reached!</b>\n\n` +
+    `💵 Current Price: <b>₹${pos.currentPrice.toFixed(2)}</b>\n` +
+    `🛡️ Stop-Loss Safety Level: <b>Raised to Entry Cost ₹${pos.entryPrice.toFixed(2)}</b>\n` +
+    `🔒 Protection Status: <b>100% Zero-Risk Trade</b>\n\n` +
+    `👉 <i>Your stop-loss has been raised to your buying price. You can no longer lose capital on this trade! Hold confidently for your profit target.</i>`;
+
+  try {
+    await sendTelegramMessage(token, chatId, msg);
+    showToast(`🛡️ Telegram Alert Sent: Zero-Risk protection activated for ${pos.symbol}!`, "success", 8000);
+    return true;
+  } catch (e) {
+    showToast(`⚠️ Telegram Breakeven Alert Error: ${e.message}`, "warning", 6000);
+    return false;
+  }
+}
+
+// Automatic Live Telegram Alert Watchdog on Target / Stop Loss / Breakeven
+async function checkAndDispatchPositionAlerts(pos) {
+  // 1. Target Reached Alert
+  if (pos.target > 0 && pos.currentPrice >= (pos.target - 0.15) && !pos.targetAlertSent) {
+    pos.targetAlertSent = true;
+    DB.saveLocalOnly(DB.buildPayload());
+    await dispatchTargetReachedAlert(pos);
+    return;
+  }
+
+  // 2. Safety Stop-Loss Alert
+  if (pos.stopLoss > 0 && pos.currentPrice <= (pos.stopLoss + 0.15) && !pos.stopAlertSent) {
     pos.stopAlertSent = true;
-    DB.saveState();
+    DB.saveLocalOnly(DB.buildPayload());
+    await dispatchStopLossAlert(pos);
+    return;
+  }
 
-    const lossRs = Math.round(Math.abs(pos.currentPnl)).toLocaleString('en-IN');
-    const lossPct = Math.abs(pos.pnlPct).toFixed(2);
-    const msg =
-      `🛑 <b>TRADEMITRA: SAFETY STOP TOUCHED</b>\n\n` +
-      `🏢 Stock: <b>${pos.symbol}</b> (${modeTitle})\n` +
-      `⚠️ Action: <b>EXIT NOW (Protect Capital)</b>\n\n` +
-      `💵 Current Price: <b>₹${pos.currentPrice.toFixed(2)}</b>\n` +
-      `🛑 Stop-Loss Safety Level: <b>₹${pos.stopLoss.toFixed(2)}</b>\n` +
-      `🛡️ Loss Cut at: <b style="color:#ef4444;">-₹${lossRs} (-${lossPct}%)</b>\n\n` +
-      `👉 <i>Exit now in your broker app to protect your capital. Safe cash is ready for the next trade!</i>`;
-
-    try {
-      await sendTelegramMessage(token, chatId, msg);
-      showToast(`🛑 Telegram Alert Sent: Stop-loss touched for ${pos.symbol}. Exit now.`, "warning", 8000);
-    } catch (e) {
-      console.warn("Could not dispatch Telegram alert:", e.message);
+  // 3. Trailing Stop Breakeven Alert (+1.5% to +2.5% profit move)
+  if (pos.pnlPct >= 1.5 && !pos.isTrailingBreakeven) {
+    pos.stopLoss = pos.entryPrice;
+    pos.isTrailingBreakeven = true;
+    if (!pos.breakevenAlertSent) {
+      pos.breakevenAlertSent = true;
+      DB.saveLocalOnly(DB.buildPayload());
+      await dispatchBreakevenAlert(pos);
     }
   }
 }

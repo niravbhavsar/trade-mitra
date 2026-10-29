@@ -212,6 +212,18 @@ def check_open_positions_watchdog(telegram_token: str, telegram_chat_id: str):
                     )
                     send_telegram_alert(token, chat_id, msg)
 
+                # 3. Breakeven Trailing Stop Alert (+2.5% Milestone)
+                elif gain_pct >= 2.5 and not pos.get('isTrailingBreakeven', False):
+                    msg = (
+                        f"🛡️ <b>TRADEMITRA: ZERO-RISK PROTECTION ACTIVATED</b>\n\n"
+                        f"🏢 Stock: <b>{symbol}</b> ({mode_label})\n"
+                        f"⚡ Milestone: <b>+2.5% Profit Move Reached! (CMP ₹{live_price:.2f})</b>\n\n"
+                        f"🛡️ Stop-Loss Safety Level: <b>Raised to Entry Cost ₹{entry_price:.2f}</b>\n"
+                        f"🔒 Protection Status: <b>100% Zero-Risk Trade</b>\n\n"
+                        f"👉 <i>Your stop-loss has been raised to your buying price. You can no longer lose capital on this trade! Hold confidently for your profit target.</i>"
+                    )
+                    send_telegram_alert(token, chat_id, msg)
+
             except Exception as pos_err:
                 print(f"[Cloud Watchdog] Error checking {symbol}: {pos_err}")
 
