@@ -15,6 +15,8 @@ const DB = {
   DATA_KEY: 'main_state',
   firestore: null,
   isCloudReady: false,
+  isCloudStateLoaded: false,
+  isExplicitReset: false,
 
   // Firebase Configuration (Live Google Cloud Firestore)
   firebaseConfig: {
@@ -80,6 +82,7 @@ const DB = {
           if (docSnap && docSnap.exists) {
             const remoteData = docSnap.data();
             console.log("Cloud Firestore state loaded successfully.");
+            DB.isCloudStateLoaded = true;
             applyIncomingState(remoteData, false);
             DB.saveLocalOnly(DB.buildPayload());
           }
@@ -141,6 +144,7 @@ const DB = {
           }
           if (doc.exists) {
             const remoteData = doc.data();
+            DB.isCloudStateLoaded = true;
             const hasLegacyMockTrades = (remoteData.openPositions && remoteData.openPositions.some(p => p.id === 'pos_1' || p.id === 'pos_2')) ||
                                         (remoteData.tradeJournal && remoteData.tradeJournal.some(j => j.id === 'j_1' || j.id === 'j_2'));
             if (hasLegacyMockTrades) return;
@@ -179,12 +183,17 @@ const DB = {
 
     // 3. Asynchronous Firebase Firestore Cloud Sync
     if (DB.firestore && DB.isCloudReady) {
-      // 🛡️ CRITICAL ARCHITECTURAL SAFETY GUARD:
-      // Never overwrite Cloud Firestore with an empty portfolio unless explicitly confirmed via "Reset Account" button!
-      const isEmptyPortfolio = (!payload.openPositions || payload.openPositions.length === 0) &&
-                               (!payload.tradeJournal || payload.tradeJournal.length === 0) &&
-                               payload.virtualCash === 100000;
-      if (isEmptyPortfolio && !DB.isExplicitReset) {
+      // 🛡️ CRITICAL ARCHITECTURAL SAFETY GUARDS:
+      // Guard 1: Never write to Cloud Firestore if cloud state has NOT been loaded/verified yet (prevents blank startup overwrite)
+      if (!DB.isCloudStateLoaded && !DB.isExplicitReset) {
+        console.warn("🛡️ Safety Guard: Cloud write blocked because remote state has not yet been fetched/verified.");
+        return;
+      }
+
+      // Guard 2: Never overwrite Cloud Firestore with an empty portfolio unless explicitly confirmed via "Reset Account" button!
+      const hasZeroPositions = (!payload.openPositions || payload.openPositions.length === 0) &&
+                               (!payload.tradeJournal || payload.tradeJournal.length === 0);
+      if (hasZeroPositions && !DB.isExplicitReset) {
         console.warn("🛡️ Safety Guard: Blocked accidental blank portfolio overwrite of Cloud Firestore.");
         return;
       }
@@ -351,12 +360,10 @@ function applyIncomingState(data, triggerSave = false) {
   if (triggerSave) DB.saveState();
 
   // Refresh active view so any newly synced trade or balance displays immediately
-  if (document.readyState === 'complete') {
-    if (AppState.currentView === 'home' && typeof renderHomeView === 'function') renderHomeView();
-    if (AppState.currentView === 'scanner' && typeof renderScannerView === 'function') renderScannerView();
-    if (AppState.currentView === 'portfolio' && typeof renderPortfolioView === 'function') renderPortfolioView();
-    if (AppState.currentView === 'settings' && typeof renderSettingsView === 'function') renderSettingsView();
-  }
+  if (AppState.currentView === 'home' && typeof renderHomeView === 'function') renderHomeView();
+  if (AppState.currentView === 'scanner' && typeof renderScannerView === 'function') renderScannerView();
+  if (AppState.currentView === 'portfolio' && typeof renderPortfolioView === 'function') renderPortfolioView();
+  if (AppState.currentView === 'settings' && typeof renderSettingsView === 'function') renderSettingsView();
 }
 
 // ==========================================================================
@@ -2967,8 +2974,15 @@ function unlockApp(saveNewSession = true) {
 
   if (saveNewSession) {
     const expiry = Date.now() + SESSION_DURATION_MS;
-    localStorage.setItem(SESSION_KEY, expiry.toString());
+    try {
+      localStorage.setItem(SESSION_KEY, expiry.toString());
+    } catch (e) {}
     scheduleSessionTimeout(SESSION_DURATION_MS);
+  }
+
+  // Immediately render current view with latest cloud data
+  if (typeof switchView === 'function') {
+    switchView(AppState.currentView || 'home');
   }
 }
 
@@ -3044,7 +3058,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // 6. Register PWA Service Worker with Automatic Update Reload
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js?v=20261030_v11').then((reg) => {
+    navigator.serviceWorker.register('./sw.js?v=20261030_v12').then((reg) => {
       reg.update().catch(() => {});
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         console.log("[PWA] Service Worker controller changed. Reloading latest app version...");
@@ -3471,7 +3485,7 @@ async function dispatchTargetReachedAlert(pos) {
     `🔔 Action: <b>SELL NOW IN REAL MARKET & APP</b>\n\n` +
     `💵 Current Price: <b>₹${pos.currentPrice.toFixed(2)}</b>\n` +
     `🎯 Target Price: <b>₹${pos.target.toFixed(2)}</b>\n` +
-    `💰 Profit to Lock: <b style="color:#10b981;">+₹${profitRs} (+${gainPct}%)</b>\n` +
+    `💰 Profit to Lock: <b>+₹${profitRs} (+${gainPct}%)</b>\n` +
     `⏱ Holding Duration: <b>Day ${pos.holdDay || 1}</b>\n\n` +
     `👉 <i>Open your broker app to sell now and pocket your profit, and tap "Sell Now" in TradeMitra to record your win!</i>`;
 
@@ -3499,7 +3513,7 @@ async function dispatchStopLossAlert(pos) {
     `⚠️ Action: <b>EXIT NOW (Protect Capital)</b>\n\n` +
     `💵 Current Price: <b>₹${pos.currentPrice.toFixed(2)}</b>\n` +
     `🛑 Stop-Loss Safety Level: <b>₹${pos.stopLoss.toFixed(2)}</b>\n` +
-    `🛡️ Loss Cut at: <b style="color:#ef4444;">-₹${lossRs} (-${lossPct}%)</b>\n\n` +
+    `🛡️ Loss Cut at: <b>-₹${lossRs} (-${lossPct}%)</b>\n\n` +
     `👉 <i>Exit now in your broker app to protect your capital. Safe cash is ready for the next trade!</i>`;
 
   try {
@@ -3589,8 +3603,8 @@ function startDaily315ActionWatchdog() {
           refreshAllStockPrices(true);
 
           // Dispatch 3:15 PM Telegram Alert directly
-          const token = (AppState.telegramToken || '').trim();
-          const chatId = (AppState.telegramChatId || '').trim();
+          const token = (AppState.telegramToken || '').trim() || '9096591513:AAHqSOhzaL_DbZ_O-34FQy0cUQDejSuj4xk';
+          const chatId = (AppState.telegramChatId || '').trim() || '6900686320';
           if (token && chatId) {
             const pool = getActiveStockPool();
             const topStock = pool.find(s => s.setup === 'BUY') || pool[0];

@@ -2,7 +2,7 @@
  * TradeMitra Service Worker — Modern Network-First PWA Engine
  * Auto-activates updates so phone PWA always runs latest code without reinstalling
  */
-const CACHE_NAME = 'trademitra-app-v11';
+const CACHE_NAME = 'trademitra-app-v12';
 
 self.addEventListener('install', (event) => {
   // Force new service worker to activate immediately without waiting for browser restart
@@ -11,7 +11,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    // Delete any old caches immediately
+    // Delete all old caches immediately
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((name) => {
@@ -28,7 +28,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Let cloud APIs pass straight through to the network
+  // Let cloud APIs and Telegram pass straight through to the network
   if (
     event.request.url.includes('firestore.googleapis.com') ||
     event.request.url.includes('firebase') ||
