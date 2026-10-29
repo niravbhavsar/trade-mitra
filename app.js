@@ -13,6 +13,7 @@ const DB = {
   DB_NAME: 'market_nirav_db',
   STORE_NAME: 'app_state',
   DATA_KEY: 'main_state',
+  DOC_NAME: 'liveAppData',
   firestore: null,
   isCloudReady: false,
   isCloudStateLoaded: false,
@@ -71,12 +72,25 @@ const DB = {
 
         // Fetch live state from Cloud Firestore (READ ONLY - never write empty default on startup!)
         try {
-          const docRef = DB.firestore.collection('marketNirav').doc('appData');
+          let docRef = DB.firestore.collection('marketNirav').doc(DB.DOC_NAME);
           let docSnap;
           try {
-            docSnap = await docRef.get();
+            // First attempt direct server fetch to bypass stale browser cache
+            docSnap = await docRef.get({ source: 'server' });
           } catch (e) {
-            console.warn("Firestore fetch retry:", e.message);
+            console.warn("Server fetch note, falling back to cache:", e.message);
+            docSnap = await docRef.get();
+          }
+
+          // Fallback to legacy appData if liveAppData not yet populated
+          if (!docSnap || !docSnap.exists) {
+            try {
+              const legacyRef = DB.firestore.collection('marketNirav').doc('appData');
+              const legacySnap = await legacyRef.get();
+              if (legacySnap && legacySnap.exists) {
+                docSnap = legacySnap;
+              }
+            } catch (e) {}
           }
 
           if (docSnap && docSnap.exists) {
@@ -136,7 +150,7 @@ const DB = {
   listenToRemoteChanges: function() {
     if (!DB.firestore) return;
     try {
-      DB.firestore.collection('marketNirav').doc('appData')
+      DB.firestore.collection('marketNirav').doc(DB.DOC_NAME)
         .onSnapshot((doc) => {
           if (doc.metadata && doc.metadata.hasPendingWrites) {
             // Ignore snapshot from own local uncommitted write to avoid bounce
@@ -199,7 +213,7 @@ const DB = {
       }
 
       try {
-        DB.firestore.collection('marketNirav').doc('appData').set(payload, { merge: true })
+        DB.firestore.collection('marketNirav').doc(DB.DOC_NAME).set(payload, { merge: true })
           .then(() => updateCloudStatusBadge(true))
           .catch(() => updateCloudStatusBadge(false));
       } catch (e) {}
@@ -2460,7 +2474,7 @@ document.addEventListener('DOMContentLoaded', () => {
       forceSyncBtn.textContent = '⏳ Syncing Cloud...';
       try {
         if (DB.firestore && DB.isCloudReady) {
-          const docRef = DB.firestore.collection('marketNirav').doc('appData');
+          const docRef = DB.firestore.collection('marketNirav').doc(DB.DOC_NAME);
           let docSnap;
           try {
             docSnap = await docRef.get({ source: 'server' });
@@ -3059,7 +3073,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   // 6. Register PWA Service Worker with Automatic Update Reload
   if ('serviceWorker' in navigator) {
     let isReloading = false;
-    navigator.serviceWorker.register('./sw.js?v=20261030_v12').then((reg) => {
+    navigator.serviceWorker.register('./sw.js?v=20261030_v15').then((reg) => {
       reg.update().catch(() => {});
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (isReloading) return;

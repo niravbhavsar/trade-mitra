@@ -136,7 +136,7 @@ def check_open_positions_watchdog(telegram_token: str, telegram_chat_id: str):
     2. Safety stop-loss is touched (Cut Loss!)
     """
     print("\n[Cloud Watchdog] Checking active holdings in Firebase Firestore...")
-    url = "https://firestore.googleapis.com/v1/projects/trademitra-58e1d/databases/(default)/documents/marketNirav/appData"
+    url = "https://firestore.googleapis.com/v1/projects/trademitra-58e1d/databases/(default)/documents/marketNirav/liveAppData"
     try:
         res = requests.get(url, timeout=10)
         if res.status_code != 200:

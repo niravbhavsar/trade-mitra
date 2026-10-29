@@ -9,10 +9,29 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
+  <script>
+    // Automatic PWA Cache Buster: Clears obsolete caches on all devices & PWAs immediately
+    (function() {
+      const BUILD_ID = '20261030_v15';
+      if (localStorage.getItem('tm_build_version') !== BUILD_ID) {
+        localStorage.setItem('tm_build_version', BUILD_ID);
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            return Promise.all(names.map(function(n) { return caches.delete(n); }));
+          });
+        }
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(r) { r.update(); });
+          });
+        }
+      }
+    })();
+  </script>
   <title>TradeMitra — Simple Indian Stock Research & Daily Gain</title>
 
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="app.css?v=20261030_v12">
+  <link rel="stylesheet" href="app.css?v=20261030_v15">
   <!-- TradingView Lightweight Charts Standalone CDN -->
   <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 </head>
@@ -840,6 +859,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20261030_v12"></script>
+  <script src="app.js?v=20261030_v15"></script>
 </body>
 </html>

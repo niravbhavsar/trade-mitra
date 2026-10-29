@@ -2,14 +2,14 @@
  * TradeMitra Service Worker — Modern Network-First PWA Engine
  * Auto-activates updates so phone PWA always runs latest code without reinstalling
  */
-const CACHE_NAME = 'trademitra-app-v12';
+const CACHE_NAME = 'trademitra-app-v15';
 
 // Core shell assets to pre-cache on install for offline functionality
 const PRECACHE_ASSETS = [
   './',
   './index.html',
-  './app.css?v=20261030_v12',
-  './app.js?v=20261030_v12',
+  './app.css?v=20261030_v15',
+  './app.js?v=20261030_v15',
   './manifest.json'
 ];
 
