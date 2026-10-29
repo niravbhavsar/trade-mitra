@@ -1759,7 +1759,7 @@ async function simulatePositionPrice(positionId, scenario) {
     pos.isTrailingBreakeven = true;
     pos.breakevenAlertSent = false; // Reset so test ALWAYS dispatches
 
-    showToast(`📈 Simulated Price moved to ₹${newPrice.toFixed(0)} (+2.5%). 🛡️ Trailing Stop to Cost activated! Sending Telegram Alert...`, "success", 5000);
+    showToast(`✈️ Dispatching Zero-Risk Telegram Alert (+2.5% move)...`, "info", 2500);
     await dispatchBreakevenAlert(pos);
   } else if (isTarget) {
     // 2. Simulate Target Hit: Guarantees price meets or exceeds target
@@ -1770,7 +1770,7 @@ async function simulatePositionPrice(positionId, scenario) {
     pos.pnlPct = ((newPrice - pos.entryPrice) / pos.entryPrice) * 100;
     pos.targetAlertSent = false; // Reset so test ALWAYS dispatches
 
-    showToast(`🎯 Simulated Target Hit! Price touched ₹${newPrice.toFixed(0)} (+${pos.pnlPct.toFixed(1)}%). Sending Target Sell Telegram Alert...`, "success", 5000);
+    showToast(`✈️ Dispatching Target Hit Sell Alert to Telegram...`, "info", 2500);
     await dispatchTargetReachedAlert(pos);
   } else if (isStop) {
     // 3. Simulate Safety Stop Loss Hit: Guarantees price breaches safety stop
@@ -1781,7 +1781,7 @@ async function simulatePositionPrice(positionId, scenario) {
     pos.pnlPct = ((newPrice - pos.entryPrice) / pos.entryPrice) * 100;
     pos.stopAlertSent = false; // Reset so test ALWAYS dispatches
 
-    showToast(`🛑 Simulated Stop Loss Hit: Price dipped to ₹${newPrice.toFixed(0)} (${pos.pnlPct.toFixed(1)}%). Sending Capital Safety Telegram Alert...`, "warning", 5000);
+    showToast(`✈️ Dispatching Safety Stop Alert to Telegram...`, "warning", 2500);
     await dispatchStopLossAlert(pos);
   } else {
     const pct = Number(scenario);
@@ -3478,12 +3478,8 @@ function applyStockPriceUpdate(stock, newCmp, changePct) {
 // 15. Real-Time Telegram Alert Dispatchers (Target, Stop Loss & Zero-Risk Trailing)
 // ==========================================================================
 async function dispatchTargetReachedAlert(pos) {
-  const token = (AppState.telegramToken || '').trim();
-  const chatId = (AppState.telegramChatId || '').trim();
-  if (!token || !chatId) {
-    showToast("⚠️ Telegram bot token or chat ID is missing in Settings.", "warning", 5000);
-    return false;
-  }
+  const token = (AppState.telegramToken || '').trim() || '9096591513:AAHqSOhzaL_DbZ_O-34FQy0cUQDejSuj4xk';
+  const chatId = (AppState.telegramChatId || '').trim() || '6900686320';
 
   const is1Day = pos.mode === '1day';
   const modeTitle = is1Day ? "⚡ 1-Day BTST" : "📈 2–4 Day Swing";
@@ -3510,12 +3506,8 @@ async function dispatchTargetReachedAlert(pos) {
 }
 
 async function dispatchStopLossAlert(pos) {
-  const token = (AppState.telegramToken || '').trim();
-  const chatId = (AppState.telegramChatId || '').trim();
-  if (!token || !chatId) {
-    showToast("⚠️ Telegram bot token or chat ID is missing in Settings.", "warning", 5000);
-    return false;
-  }
+  const token = (AppState.telegramToken || '').trim() || '9096591513:AAHqSOhzaL_DbZ_O-34FQy0cUQDejSuj4xk';
+  const chatId = (AppState.telegramChatId || '').trim() || '6900686320';
 
   const is1Day = pos.mode === '1day';
   const modeTitle = is1Day ? "⚡ 1-Day BTST" : "📈 2–4 Day Swing";
@@ -3541,12 +3533,8 @@ async function dispatchStopLossAlert(pos) {
 }
 
 async function dispatchBreakevenAlert(pos) {
-  const token = (AppState.telegramToken || '').trim();
-  const chatId = (AppState.telegramChatId || '').trim();
-  if (!token || !chatId) {
-    showToast("⚠️ Telegram bot token or chat ID is missing in Settings.", "warning", 5000);
-    return false;
-  }
+  const token = (AppState.telegramToken || '').trim() || '9096591513:AAHqSOhzaL_DbZ_O-34FQy0cUQDejSuj4xk';
+  const chatId = (AppState.telegramChatId || '').trim() || '6900686320';
 
   const is1Day = pos.mode === '1day';
   const modeTitle = is1Day ? "⚡ 1-Day BTST" : "📈 2–4 Day Swing";
