@@ -71,24 +71,35 @@ const DB = {
         // Initial Multi-Device Cloud Document Fetch
         try {
           const docRef = DB.firestore.collection('marketNirav').doc('appData');
-          const docSnap = await docRef.get();
-          if (docSnap.exists) {
+          let docSnap;
+          try {
+            // First attempt to get fresh data directly from server to bypass stale PWA cache
+            docSnap = await docRef.get({ source: 'server' });
+          } catch (netErr) {
+            console.warn("Server fetch note, falling back to cache:", netErr.message);
+            docSnap = await docRef.get();
+          }
+
+          if (docSnap && docSnap.exists) {
             const remoteData = docSnap.data();
             const hasLegacyMockTrades = (remoteData.openPositions && remoteData.openPositions.some(p => p.id === 'pos_1' || p.id === 'pos_2')) ||
                                         (remoteData.tradeJournal && remoteData.tradeJournal.some(j => j.id === 'j_1' || j.id === 'j_2'));
-            const remoteTime = remoteData.updatedAt ? new Date(remoteData.updatedAt).getTime() : 0;
-            const localTime = AppState.updatedAt ? new Date(AppState.updatedAt).getTime() : 0;
 
             if (hasLegacyMockTrades) {
               console.log("Purging legacy mock trades from Firestore with clean initial state.");
               await docRef.set(DB.buildPayload(), { merge: true });
-            } else if (remoteTime > localTime || !AppState.updatedAt) {
-              console.log("Adopting latest cloud state from Firestore.");
+            } else {
+              // Intelligently merge remote and local state so orders on phone and PWA never conflict
               applyIncomingState(remoteData, false);
-              DB.saveLocalOnly(remoteData);
-            } else if (localTime > remoteTime) {
-              console.log("Uploading newer local state to Firestore.");
-              await docRef.set(DB.buildPayload(), { merge: true });
+              DB.saveLocalOnly(DB.buildPayload());
+
+              // If local had unsaved orders not present in remote, sync merged state back to cloud
+              const remotePositions = remoteData.openPositions || [];
+              const localHasMore = (AppState.openPositions || []).some(lp => !remotePositions.some(rp => rp.id === lp.id));
+              if (localHasMore) {
+                console.log("Syncing merged positions back to cloud.");
+                await DB.saveState();
+              }
             }
           } else {
             console.log("Initializing first-time cloud state.");
@@ -146,6 +157,10 @@ const DB = {
     try {
       DB.firestore.collection('marketNirav').doc('appData')
         .onSnapshot((doc) => {
+          if (doc.metadata && doc.metadata.hasPendingWrites) {
+            // Ignore snapshot from own local uncommitted write to avoid bounce
+            return;
+          }
           if (doc.exists) {
             const remoteData = doc.data();
             const hasLegacyMockTrades = (remoteData.openPositions && remoteData.openPositions.some(p => p.id === 'pos_1' || p.id === 'pos_2')) ||
@@ -154,7 +169,7 @@ const DB = {
             if (remoteData && remoteData.updatedAt && remoteData.updatedAt !== AppState.updatedAt) {
               console.log("Remote cloud update received from another device/browser.");
               applyIncomingState(remoteData, false);
-              DB.saveLocalOnly(remoteData);
+              DB.saveLocalOnly(DB.buildPayload());
             }
           }
         }, (err) => {
@@ -234,16 +249,14 @@ const DB = {
       }
     } catch (e) {}
 
-    // Clean Slate: Clear test trades so user starts real trial fresh tomorrow
-    const hasMock = (AppState.openPositions && AppState.openPositions.some(p => p.id === 'pos_1' || p.id === 'pos_2')) ||
-                    (AppState.tradeJournal && AppState.tradeJournal.some(j => j.id === 'j_1' || j.id === 'j_2'));
-    if (localStorage.getItem('tm_clean_slate_v5') !== 'true' || hasMock) {
-      AppState.virtualCash = 100000.00;
-      AppState.openPositions = [];
-      AppState.tradeJournal = [];
-      AppState.updatedAt = new Date().toISOString();
-      localStorage.setItem('tm_clean_slate_v5', 'true');
-      DB.saveState();
+    // Clean Slate: Only purge obsolete legacy mock sample IDs ('pos_1', 'pos_2') if present, never delete real user orders!
+    if (AppState.openPositions && AppState.openPositions.some(p => p.id === 'pos_1' || p.id === 'pos_2')) {
+      AppState.openPositions = AppState.openPositions.filter(p => p.id !== 'pos_1' && p.id !== 'pos_2');
+      DB.saveLocalOnly(DB.buildPayload());
+    }
+    if (AppState.tradeJournal && AppState.tradeJournal.some(j => j.id === 'j_1' || j.id === 'j_2')) {
+      AppState.tradeJournal = AppState.tradeJournal.filter(j => j.id !== 'j_1' && j.id !== 'j_2');
+      DB.saveLocalOnly(DB.buildPayload());
     }
   }
 };
@@ -266,8 +279,59 @@ function updateCloudStatusBadge(isOnline) {
   }
 }
 
+function mergeJournal(localJournal = [], remoteJournal = []) {
+  const map = new Map();
+  (remoteJournal || []).forEach(j => {
+    if (j && j.id) map.set(j.id, j);
+  });
+  (localJournal || []).forEach(j => {
+    if (j && j.id && !map.has(j.id)) {
+      map.set(j.id, j);
+    }
+  });
+  return Array.from(map.values()).sort((a, b) => (b.id > a.id ? 1 : -1));
+}
+
+function mergePositions(localPositions = [], remotePositions = [], journal = []) {
+  const closedIds = new Set((journal || []).map(j => j.positionId).filter(Boolean));
+  const map = new Map();
+
+  // 1. Add remote positions (skipping any that were closed)
+  (remotePositions || []).forEach(p => {
+    if (p && p.id && !closedIds.has(p.id)) {
+      map.set(p.id, p);
+    }
+  });
+
+  // 2. Add or merge local positions (skipping any that were closed)
+  (localPositions || []).forEach(p => {
+    if (p && p.id && !closedIds.has(p.id)) {
+      if (!map.has(p.id)) {
+        map.set(p.id, p);
+      } else {
+        const remote = map.get(p.id);
+        const remoteTime = remote.updatedAt ? new Date(remote.updatedAt).getTime() : 0;
+        const localTime = p.updatedAt ? new Date(p.updatedAt).getTime() : 0;
+        if (localTime >= remoteTime) {
+          map.set(p.id, Object.assign({}, remote, p));
+        } else {
+          map.set(p.id, Object.assign({}, p, remote));
+        }
+      }
+    }
+  });
+
+  return Array.from(map.values());
+}
+
 function applyIncomingState(data, triggerSave = false) {
-  if (data.virtualCash !== undefined) AppState.virtualCash = data.virtualCash;
+  if (data.virtualCash !== undefined) {
+    const incomingTime = data.updatedAt ? new Date(data.updatedAt).getTime() : 0;
+    const currentTime = AppState.updatedAt ? new Date(AppState.updatedAt).getTime() : 0;
+    if (incomingTime >= currentTime || AppState.virtualCash === 100000) {
+      AppState.virtualCash = data.virtualCash;
+    }
+  }
   if (data.riskPct !== undefined) AppState.riskPct = data.riskPct;
   if (data.tradingMode) AppState.tradingMode = data.tradingMode;
   if (data.marketCondition) AppState.marketCondition = data.marketCondition;
@@ -275,13 +339,26 @@ function applyIncomingState(data, triggerSave = false) {
     AppState.theme = data.theme;
     if (typeof setThemeMode === 'function') setThemeMode(data.theme, false);
   }
-  if (data.openPositions) AppState.openPositions = data.openPositions;
-  if (data.tradeJournal) AppState.tradeJournal = data.tradeJournal;
+
+  // Merge journal entries seamlessly across devices
+  if (data.tradeJournal) {
+    AppState.tradeJournal = mergeJournal(AppState.tradeJournal, data.tradeJournal);
+  }
+
+  // Merge positions by unique ID, preventing concurrent trade loss
+  if (data.openPositions) {
+    AppState.openPositions = mergePositions(AppState.openPositions, data.openPositions, AppState.tradeJournal);
+  }
+
   if (data.customStocks) AppState.customStocks = data.customStocks;
   if (data.pin) AppState.pin = data.pin;
   if (data.telegramToken !== undefined) AppState.telegramToken = data.telegramToken;
   if (data.telegramChatId !== undefined) AppState.telegramChatId = data.telegramChatId;
-  if (data.updatedAt) AppState.updatedAt = data.updatedAt;
+  if (data.updatedAt) {
+    const inTime = new Date(data.updatedAt).getTime();
+    const curTime = AppState.updatedAt ? new Date(AppState.updatedAt).getTime() : 0;
+    if (inTime > curTime) AppState.updatedAt = data.updatedAt;
+  }
 
   if (triggerSave) DB.saveState();
 
@@ -2357,8 +2434,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const forceSyncBtn = document.getElementById('btn-force-cloud-sync');
   if (forceSyncBtn) {
     forceSyncBtn.addEventListener('click', async () => {
-      await DB.saveState();
-      showToast("☁️ Cloud database sync complete!", "success");
+      forceSyncBtn.disabled = true;
+      forceSyncBtn.textContent = '⏳ Syncing Cloud...';
+      try {
+        if (DB.firestore && DB.isCloudReady) {
+          const docRef = DB.firestore.collection('marketNirav').doc('appData');
+          let docSnap;
+          try {
+            docSnap = await docRef.get({ source: 'server' });
+          } catch (e) {
+            docSnap = await docRef.get();
+          }
+          if (docSnap && docSnap.exists) {
+            applyIncomingState(docSnap.data(), false);
+          }
+          await DB.saveState();
+        } else {
+          await DB.saveState();
+        }
+        showToast("☁️ Cloud database sync complete! All orders and balances updated across devices.", "success");
+      } catch (e) {
+        showToast("⚠️ Sync notice: " + e.message, "warning");
+      } finally {
+        forceSyncBtn.disabled = false;
+        forceSyncBtn.textContent = 'Sync Cloud Now';
+        if (AppState.currentView === 'home') renderHomeView();
+        if (AppState.currentView === 'portfolio') renderPortfolioView();
+      }
     });
   }
 
@@ -2601,7 +2703,9 @@ document.addEventListener('DOMContentLoaded', () => {
         isTrailingBreakeven: false,
         targetAlertSent: false,
         stopAlertSent: false,
-        btstMorningAlertSent: false
+        btstMorningAlertSent: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
       AppState.openPositions.push(newPosition);
 
@@ -2666,6 +2770,7 @@ async function closePaperTrade(positionId) {
 
   AppState.tradeJournal.unshift({
     id: `j_${Date.now()}`,
+    positionId: pos.id,
     date: new Date().toISOString().slice(0, 10),
     symbol: pos.symbol,
     mode: pos.mode || 'swing',
@@ -3271,8 +3376,8 @@ async function refreshAllStockPrices(silent = false) {
     timestampEl.textContent = `Today ${timeStr} (Live)`;
   }
 
-  // Save state locally
-  DB.saveState();
+  // Save quote updates locally ONLY - never push to Firestore on 5s ticker to prevent multi-device race conditions!
+  DB.saveLocalOnly(DB.buildPayload());
 
   // Re-render current view with latest live market prices
   if (AppState.currentView === 'home') {
