@@ -3418,6 +3418,36 @@ function startDaily315ActionWatchdog() {
           last315AlertDate = todayStr;
           showToast("⏰ 3:15 PM Daily Action Check: Review today's top stock before market closes at 3:30 PM!", "warning", 8000);
           refreshAllStockPrices(true);
+
+          // Dispatch 3:15 PM Telegram Alert directly
+          const token = (AppState.telegramToken || '').trim();
+          const chatId = (AppState.telegramChatId || '').trim();
+          if (token && chatId) {
+            const pool = getActiveStockPool();
+            const topStock = pool.find(s => s.setup === 'BUY') || pool[0];
+            const is1Day = AppState.tradingMode === '1day';
+            const target = is1Day ? topStock.btstTarget : topStock.swingTarget;
+            const targetGain = is1Day ? topStock.btstTargetGainPct : topStock.swingTargetGainPct;
+            const stopLoss = is1Day ? topStock.btstStopLoss : topStock.swingStopLoss;
+            const stopLossPct = is1Day ? topStock.btstStopLossPct : topStock.swingStopLossPct;
+            const entryMin = is1Day ? topStock.btstEntryMin : topStock.swingEntryMin;
+            const entryMax = is1Day ? topStock.btstEntryMax : topStock.swingEntryMax;
+            const horizon = is1Day ? "1 Day (BTST)" : "2–4 Days";
+
+            const msg =
+              `⏰ <b>TRADEMITRA: 3:15 PM DAILY ACTION CHECK</b>\n\n` +
+              `🏢 Top Stock: <b>${topStock.symbol}</b> (${topStock.name})\n` +
+              `🟢 Action: <b>BUY BEFORE 03:25 PM CLOSE</b>\n\n` +
+              `💵 Best Price to Buy: <b>₹${entryMin.toFixed(0)} – ₹${entryMax.toFixed(0)}</b> (CMP ₹${topStock.cmp.toFixed(2)})\n` +
+              `🎯 Profit Target: <b>₹${target.toFixed(0)} (+${targetGain.toFixed(1)}%)</b>\n` +
+              `🛑 Safety Stop: <b>₹${stopLoss.toFixed(0)} (-${stopLossPct.toFixed(1)}%)</b>\n` +
+              `⏱ Horizon: <b>${horizon}</b>\n\n` +
+              `📊 <b>10-Year Track Record:</b> <b>${topStock.tenYearWinRate}% Win Rate</b> (${topStock.totalTested} scans)\n` +
+              `💡 <b>Setup Reason:</b> ${topStock.reason}\n\n` +
+              `👉 <i>Execute in TradeMitra or with your broker before market closes at 3:30 PM!</i>`;
+
+            sendTelegramMessage(token, chatId, msg).catch(() => {});
+          }
         }
       }
     }

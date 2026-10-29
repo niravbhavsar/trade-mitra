@@ -157,3 +157,8 @@ def evaluate_multi_regime_signal(df: pd.DataFrame, mode: str = "swing", market_r
             }
 
         return {'qualifies': False, 'reason': 'NO_TRADE: Cash Shield Active. Capital is safely preserved.'}
+
+def evaluate_swing_signal(df: pd.DataFrame, current_idx: int = -1) -> dict:
+    """Wrapper for backward compatibility and swing setup evaluation."""
+    return evaluate_multi_regime_signal(df, mode="swing", market_regime="good", current_idx=current_idx)
+

@@ -3,14 +3,26 @@
 Walks forward bar by bar without look-ahead bias and models realistic trading costs.
 """
 import sys
+import os
 import pandas as pd
 import numpy as np
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+
 from strategy_rules import calculate_technical_indicators, evaluate_swing_signal
 
 def run_10yr_backtest(df: pd.DataFrame, initial_capital: float = 100000.0, risk_pct: float = 1.5):
     """
     Executes a chronological walk-forward simulation across historical daily bars.
     """
+    if hasattr(df, 'columns') and isinstance(df.columns, pd.MultiIndex):
+        try:
+            df.columns = df.columns.droplevel(1)
+        except Exception:
+            df.columns = [col[0] if isinstance(col, tuple) else col for col in df.columns]
+
     data = calculate_technical_indicators(df)
     trades = []
     capital = initial_capital
