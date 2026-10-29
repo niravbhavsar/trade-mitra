@@ -3058,9 +3058,12 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // 6. Register PWA Service Worker with Automatic Update Reload
   if ('serviceWorker' in navigator) {
+    let isReloading = false;
     navigator.serviceWorker.register('./sw.js?v=20261030_v12').then((reg) => {
       reg.update().catch(() => {});
       navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (isReloading) return;
+        isReloading = true;
         console.log("[PWA] Service Worker controller changed. Reloading latest app version...");
         window.location.reload();
       });
