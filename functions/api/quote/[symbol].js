@@ -5,3 +5,4 @@ import { onRequestGet as handleGet, onRequestOptions as handleOptions } from '..
 
 export const onRequestGet = handleGet;
 export const onRequestOptions = handleOptions;
+

@@ -1,0 +1,7 @@
+functions/
+wrangler.jsonc
+package.json
+package-lock.json
+bun.lockb
+node_modules/
+.git/
