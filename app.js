@@ -1255,7 +1255,8 @@ function shareProfitOnWhatsApp() {
   const totalProfit = AppState.tradeJournal.reduce((acc, j) => acc + j.pnlRupees, 0);
   const wins = AppState.tradeJournal.filter(j => j.pnlRupees > 0).length;
   const rate = AppState.tradeJournal.length > 0 ? ((wins / AppState.tradeJournal.length) * 100).toFixed(1) : 0;
-  const text = `📈 *TradeMitra Profit Diary Update*\n\n💰 Total Pocketed Profit: *+₹${totalProfit.toLocaleString('en-IN')}*\n🎯 Win Rate: *${rate}%* (${wins} Wins / ${AppState.tradeJournal.length} Trades)\n⏱ Practice Period: Day 24 of 90\n💡 Everyday Impact: Covers ~10 days of household expenses!\n\nOpen TradeMitra: https://trademitra.netlify.app`;
+  const appUrl = window.location.origin || 'https://trademitra.pages.dev';
+  const text = `📈 *TradeMitra Profit Diary Update*\n\n💰 Total Pocketed Profit: *+₹${totalProfit.toLocaleString('en-IN')}*\n🎯 Win Rate: *${rate}%* (${wins} Wins / ${AppState.tradeJournal.length} Trades)\n⏱ Practice Period: Day 24 of 90\n💡 Everyday Impact: Covers ~10 days of household expenses!\n\nOpen TradeMitra: ${appUrl}`;
   const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
   window.open(url, '_blank');
 }
@@ -3299,8 +3300,9 @@ async function fetchLiveStockQuote(symbol) {
   if (!cleanSymbol) return null;
 
   const candidateUrls = [
-    `/.netlify/functions/quote?symbol=${encodeURIComponent(cleanSymbol)}`,
+    `/api/quote?symbol=${encodeURIComponent(cleanSymbol)}`,
     `/api/quote/${encodeURIComponent(cleanSymbol)}`,
+    `/.netlify/functions/quote?symbol=${encodeURIComponent(cleanSymbol)}`,
     `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${cleanSymbol}.NS?interval=1d`)}`
   ];
 
@@ -3365,8 +3367,8 @@ async function refreshAllStockPrices(silent = false) {
   try {
     const symbols = pool.map(s => s.symbol).join(',');
     const batchUrls = [
-      `/.netlify/functions/batch?symbols=${encodeURIComponent(symbols)}`,
-      `/api/batch?symbols=${encodeURIComponent(symbols)}`
+      `/api/batch?symbols=${encodeURIComponent(symbols)}`,
+      `/.netlify/functions/batch?symbols=${encodeURIComponent(symbols)}`
     ];
 
     for (const bUrl of batchUrls) {

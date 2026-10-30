@@ -36,8 +36,8 @@ A lightweight, zero-cost, mobile-first Progressive Web Application (PWA) designe
 | :--- | :--- | :--- | :--- |
 | **Frontend Core** | Pure Vanilla HTML5, CSS3, ES6+ JavaScript | **₹0 / $0** | **Zero Build / Zero Compilation.** No React, Vue, Angular, Vite, or Webpack. Fast DOM rendering, zero `npm install` needed. |
 | **Styling & Theme** | Mobile-First Custom CSS | **₹0 / $0** | Glassmorphism, CSS variables, dark/light themes, fully responsive down to 320px mobile screens. |
-| **Hosting & Deployment** | **Netlify** (Static PWA) | **₹0 / $0** | 100% Free static hosting, continuous Git auto-deployment, custom `.netlify.app` domain, free automated SSL. |
-| **Serverless API Layer** | Netlify Functions (Node.js ES6) | **₹0 / $0** | Clean JavaScript serverless functions (`netlify/functions/quote.js` and `batch.js`) proxying live NSE quotes. **No PHP, no heavy backend.** |
+| **Hosting & Deployment** | **Cloudflare Pages** (Static PWA) | **₹0 / $0** | **100% Free Forever.** Unlimited bandwidth, 500 builds/month, ultra-fast 300+ city global Edge network, free automated SSL, custom domain support. |
+| **Serverless API Layer** | Cloudflare Pages Functions (`functions/api/`) & Netlify Functions | **₹0 / $0** | 100,000 free requests/day Edge Functions (`functions/api/quote.js` and `batch.js`) proxying live NSE quotes. **No PHP, no heavy backend.** |
 | **Cloud Database** | **Google Firebase Cloud Firestore** | **₹0 / $0** | **Permanently Free (Spark Tier).** Real-time multi-device synchronization (`onSnapshot` / `setDoc`) between phone and desktop. **Never pauses or sleeps.** |
 | **Local Storage Engine** | IndexedDB & `localStorage` | **₹0 / $0** | Offline-first persistence. Bootstraps in < 50ms from local storage even when offline. |
 | **Offline PWA** | Web App Manifest + Service Worker | **₹0 / $0** | `manifest.json` + `sw.js` (Network-First with instant cache invalidation). Auto-updates seamlessly on phone without needing to reinstall. |
@@ -97,7 +97,7 @@ Database Architecture:
 │
 └── Cloud Storage Layer (Multi-Device Sync, Permanently Free)
     └── Google Firebase Cloud Firestore (trademitra-58e1d)
-        └── Document: 'marketNirav/appData'
+        └── Document: 'marketNirav/liveAppData'
             ├── user_settings: { startingCash, riskPct, activeMode, pin, telegramConfig }
             ├── open_positions: [ { id, symbol, mode, entryPrice, target, stop, qty, pnl } ]
             ├── trade_journal: [ { id, date, symbol, mode, pnlRupees, pnlPct, reason } ]
@@ -106,22 +106,48 @@ Database Architecture:
 
 ---
 
-## 🚀 Live Deployment on Netlify
+## 🚀 Live Deployment on Cloudflare Pages (Recommended - 100% Free Forever)
 
-### How to Deploy:
-1. **Push to GitHub:**
+Cloudflare Pages provides generous free-tier limits: **Unlimited bandwidth**, **500 builds/month**, and **100,000 requests/day** for serverless edge functions.
+
+### Step-by-Step Deployment Instructions:
+
+1. **Push the Latest Code to GitHub:**
    ```bash
    git add .
-   git commit -m "Update TradeMitra PWA"
+   git commit -m "Configure Cloudflare Pages deployment"
    git push origin main
    ```
-2. **Connect to Netlify:**
-   * Go to [Netlify](https://app.netlify.com/).
-   * Click **Add new site** > **Import an existing project** > **GitHub** > Select `niravbhavsar/trade-mitra`.
-   * **Build command:** *Leave blank*
-   * **Publish directory:** `.`
-   * Click **Deploy Site**.
-3. **App is Live:** Open your Netlify URL (e.g. `https://trademitra.netlify.app/`) on your phone or laptop.
+
+2. **Log into Cloudflare Dashboard:**
+   * Go to [Cloudflare Dashboard](https://dash.cloudflare.com/).
+   * If you don't have an account, sign up for free (no credit card required).
+
+3. **Create a Pages Project:**
+   * In the left sidebar, click **Workers & Pages**.
+   * Click **Create application** (or **Create project**), then select the **Pages** tab.
+   * Click **Connect to Git**.
+   * Select your GitHub account and authorize access to your repository: `niravbhavsar/trade-mitra`.
+   * Click **Begin setup**.
+
+4. **Configure Build Settings:**
+   * **Project name:** `trade-mitra` (or `trademitra`)
+   * **Production branch:** `main`
+   * **Framework preset:** Select **None**
+   * **Build command:** *(Leave completely blank / empty)*
+   * **Build output directory:** `.` (or leave empty if it defaults to root)
+   * **Root directory:** *(Leave blank)*
+
+5. **Deploy:**
+   * Click **Save and Deploy**.
+   * Cloudflare will fetch the repository, build the serverless functions in `functions/api/`, deploy the static PWA shell, and assign a live URL (e.g., `https://trade-mitra.pages.dev` or `https://trademitra.pages.dev`).
+
+6. **Open Your App:**
+   * Visit your Cloudflare Pages URL on your mobile phone or laptop.
+   * Enter Master PIN: `5189`.
+   * Tap **Install App** / **Add to Home screen** in your browser menu to run it as a full-screen PWA.
+
+*(Note: If you ever want to redeploy or update the app in the future, simply run `git push origin main` — Cloudflare Pages will automatically detect the commit and deploy within ~15 seconds.)*
 
 ---
 
@@ -144,10 +170,10 @@ Since the application has **zero build dependencies**, you can run it immediatel
 ## 📌 Rules for Future Enhancements
 
 To preserve the zero-cost, lightweight reliability of this application, all future development must follow these rules:
-1. **Never introduce server-side scripting (No PHP, Ruby, etc.)** that prevents static Netlify hosting.
+1. **Never introduce server-side scripting (No PHP, Ruby, etc.)** that prevents static Cloudflare Pages hosting.
 2. **Never add heavy frontend frameworks (No React, Vue, Angular)** that require build pipelines or node bundling.
 3. Keep all client code in pure **Vanilla HTML5, CSS3, ES6+ JavaScript**.
-4. Use **Netlify Functions** (`netlify/functions/*.js`) for any required serverless proxy APIs.
+4. Use **Cloudflare Pages Functions** (`functions/api/*.js`) or **Netlify Functions** (`netlify/functions/*.js`) for any required serverless proxy APIs.
 5. Use **Google Firebase Cloud Firestore** client SDK for all cloud data synchronization.
 6. Maintain full **offline capability** through local IndexedDB and Service Worker caching.
 
