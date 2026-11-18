@@ -2141,7 +2141,37 @@ function renderBudgetStocksSection(heldMap) {
 
   const is1Day = AppState.tradingMode === '1day';
 
-  const cardsHtml = BUDGET_NSE_STOCKS.map(stock => {
+  // Dynamically select the top 5 stocks under ₹500 from the active stock pool & curated list
+  const pool = getActiveStockPool();
+  const candidatePool = [...pool, ...BUDGET_NSE_STOCKS];
+  const seenSymbols = new Set();
+  const uniqueBudgetPool = [];
+  candidatePool.forEach(s => {
+    if (!s || !s.symbol || (s.cmp || 0) >= 500 || (s.cmp || 0) <= 0) return;
+    const sym = s.symbol.toUpperCase();
+    if (!seenSymbols.has(sym)) {
+      seenSymbols.add(sym);
+      uniqueBudgetPool.push(s);
+    }
+  });
+
+  // Dynamic ranking algorithm:
+  // 1. Prioritize fresh unheld stocks first so user is not prompted to re-buy held positions
+  // 2. High-probability BUY setups first
+  // 3. Highest 10-year historical win rate descending
+  const dynamicBudgetStocks = uniqueBudgetPool.sort((a, b) => {
+    const aHeld = heldMap && heldMap.has(a.symbol.toUpperCase());
+    const bHeld = heldMap && heldMap.has(b.symbol.toUpperCase());
+    if (aHeld !== bHeld) return aHeld ? 1 : -1;
+
+    const aBuy = a.setup === 'BUY' ? 1 : 0;
+    const bBuy = b.setup === 'BUY' ? 1 : 0;
+    if (aBuy !== bBuy) return bBuy - aBuy;
+
+    return (b.tenYearWinRate || 0) - (a.tenYearWinRate || 0);
+  }).slice(0, 5);
+
+  const cardsHtml = dynamicBudgetStocks.map(stock => {
     const held = heldMap ? heldMap.get(stock.symbol.toUpperCase()) : null;
     const isHeld = !!held;
     const isPositive = (stock.change || 0) >= 0;
