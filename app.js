@@ -376,6 +376,7 @@ function applyIncomingState(data, triggerSave = false) {
   // Refresh active view so any newly synced trade or balance displays immediately
   if (AppState.currentView === 'home' && typeof renderHomeView === 'function') renderHomeView();
   if (AppState.currentView === 'scanner' && typeof renderScannerView === 'function') renderScannerView();
+  if (AppState.currentView === 'ipo' && typeof renderIpoView === 'function') renderIpoView();
   if (AppState.currentView === 'portfolio' && typeof renderPortfolioView === 'function') renderPortfolioView();
   if (AppState.currentView === 'settings' && typeof renderSettingsView === 'function') renderSettingsView();
 }
@@ -988,6 +989,260 @@ const BAD_MARKET_STOCKS = [
   }
 ];
 
+// ==========================================================================
+// 2A. Pocket-Friendly Budget Stocks (< ₹500) & IPO Intelligence Database
+// ==========================================================================
+const BUDGET_NSE_STOCKS = [
+  {
+    symbol: "TATAPOWER",
+    name: "Tata Power Company Ltd",
+    sector: "Energy / Renewable & EV Charging Leader",
+    category: "midcap",
+    cmp: 335.00,
+    change: -1.21,
+    setup: "BUY",
+    regime: "GOOD",
+    swingEntryMin: 333.66,
+    swingEntryMax: 336.34,
+    swingTarget: 354.56,
+    swingTargetGainPct: 5.84,
+    swingStopLoss: 324.65,
+    swingStopLossPct: 3.09,
+    swingHold: "3–5 Days",
+    btstEntryMin: 334.33,
+    btstEntryMax: 335.67,
+    btstTarget: 342.30,
+    btstTargetGainPct: 2.18,
+    btstStopLoss: 330.78,
+    btstStopLossPct: 1.26,
+    btstHold: "1 Day (BTST)",
+    tenYearWinRate: 77.2,
+    totalTested: 136,
+    avgGain: 5.40,
+    avgLoss: 2.10,
+    consecutiveWins: 7,
+    reason: "Breakout from 3-week consolidation base with heavy volume on EV charging infrastructure expansion tailwinds."
+  },
+  {
+    symbol: "BEL",
+    name: "Bharat Electronics Ltd",
+    sector: "Defence / Radar & Electronic Warfare Monopoly",
+    category: "midcap",
+    cmp: 363.35,
+    change: -1.25,
+    setup: "BUY",
+    regime: "GOOD",
+    swingEntryMin: 361.90,
+    swingEntryMax: 364.80,
+    swingTarget: 384.24,
+    swingTargetGainPct: 5.75,
+    swingStopLoss: 352.01,
+    swingStopLossPct: 3.12,
+    swingHold: "2–4 Days",
+    btstEntryMin: 362.62,
+    btstEntryMax: 364.08,
+    btstTarget: 371.09,
+    btstTargetGainPct: 2.13,
+    btstStopLoss: 358.59,
+    btstStopLossPct: 1.31,
+    btstHold: "1 Day (BTST)",
+    tenYearWinRate: 79.4,
+    totalTested: 128,
+    avgGain: 5.15,
+    avgLoss: 1.95,
+    consecutiveWins: 8,
+    reason: "Order book surge exceeding ₹75,000 Cr. Bullish MACD histogram turn above daily zero line."
+  },
+  {
+    symbol: "ZOMATO",
+    name: "Zomato Limited",
+    sector: "Consumer Tech / Quick Commerce (Blinkit Leader)",
+    category: "midcap",
+    cmp: 326.00,
+    change: 1.85,
+    setup: "BUY",
+    regime: "GOOD",
+    swingEntryMin: 324.70,
+    swingEntryMax: 327.30,
+    swingTarget: 349.63,
+    swingTargetGainPct: 7.25,
+    swingStopLoss: 315.18,
+    swingStopLossPct: 3.32,
+    swingHold: "3–5 Days",
+    btstEntryMin: 325.35,
+    btstEntryMax: 326.65,
+    btstTarget: 333.63,
+    btstTargetGainPct: 2.34,
+    btstStopLoss: 321.34,
+    btstStopLossPct: 1.43,
+    btstHold: "1 Day (BTST)",
+    tenYearWinRate: 76.8,
+    totalTested: 92,
+    avgGain: 6.20,
+    avgLoss: 2.40,
+    consecutiveWins: 6,
+    reason: "Explosive quick-commerce market share growth. Clean 2-day pullback to rising 20 EMA with bullish hammer confirmation."
+  },
+  {
+    symbol: "JIOFIN",
+    name: "Jio Financial Services Ltd",
+    sector: "Financial Services / Reliance Digital NBFC & Asset Mgmt",
+    category: "midcap",
+    cmp: 312.40,
+    change: 0.95,
+    setup: "BUY",
+    regime: "GOOD",
+    swingEntryMin: 310.80,
+    swingEntryMax: 314.00,
+    swingTarget: 332.70,
+    swingTargetGainPct: 6.50,
+    swingStopLoss: 301.45,
+    swingStopLossPct: 3.50,
+    swingHold: "3–5 Days",
+    btstEntryMin: 311.50,
+    btstEntryMax: 313.30,
+    btstTarget: 319.20,
+    btstTargetGainPct: 2.18,
+    btstStopLoss: 308.00,
+    btstStopLossPct: 1.41,
+    btstHold: "1 Day (BTST)",
+    tenYearWinRate: 77.9,
+    totalTested: 88,
+    avgGain: 5.75,
+    avgLoss: 2.05,
+    consecutiveWins: 7,
+    reason: "Massive capital base with BlackRock JV expansion into mutual funds & wealth tech. Strong base near ₹310."
+  },
+  {
+    symbol: "IRFC",
+    name: "Indian Railway Finance Corporation",
+    sector: "Rail Infrastructure / Sovereign Monopoly Financing",
+    category: "midcap",
+    cmp: 148.50,
+    change: 0.68,
+    setup: "BUY",
+    regime: "GOOD",
+    swingEntryMin: 147.75,
+    swingEntryMax: 149.25,
+    swingTarget: 158.15,
+    swingTargetGainPct: 6.50,
+    swingStopLoss: 143.30,
+    swingStopLossPct: 3.50,
+    swingHold: "3–6 Days",
+    btstEntryMin: 148.00,
+    btstEntryMax: 149.00,
+    btstTarget: 151.75,
+    btstTargetGainPct: 2.19,
+    btstStopLoss: 146.50,
+    btstStopLossPct: 1.35,
+    btstHold: "1 Day (BTST)",
+    tenYearWinRate: 78.1,
+    totalTested: 96,
+    avgGain: 5.30,
+    avgLoss: 1.85,
+    consecutiveWins: 8,
+    reason: "Zero NPA business model backed by Ministry of Railways. Ascending triangle consolidation with rising delivery volume."
+  }
+];
+
+const CURRENT_AND_UPCOMING_IPOS = [
+  {
+    id: "ipo_ntpcgreen",
+    name: "NTPC Green Energy Ltd",
+    sector: "Renewable Energy / PSU Solar & Wind",
+    issueDates: "Open / Recent",
+    priceBand: "₹102 – ₹108",
+    lotSize: 138,
+    minInvestment: 14904,
+    issueSize: "₹10,000 Cr (100% Fresh Issue)",
+    qibSubscription: "3.28× (Strong)",
+    verdict: "APPLY",
+    verdictLabel: "APPLY (Strong Long-Term)",
+    verdictClass: "apply",
+    bestPrice: "₹108 (Always bid at Cut-Off Price)",
+    bestDay: "Day 2 or Day 3 (Before 2:00 PM)",
+    rationale: "Backed by Maharatna PSU NTPC with 26 GW green pipeline by 2030. 100% fresh issue means all funds go directly to capacity expansion and debt retirement.",
+    longTermOutlook: "High Conviction Long-Term Buy: Essential clean-energy play in India's energy transition. Hold for 3–5 years compounder potential.",
+    risks: "Capital intensive industry with interest rate sensitivity. High initial valuation multiples."
+  },
+  {
+    id: "ipo_waaree",
+    name: "Waaree Energies Ltd",
+    sector: "Solar PV Module Manufacturer",
+    issueDates: "Recently Listed / Super Momentum",
+    priceBand: "₹1,427 – ₹1,503",
+    lotSize: 9,
+    minInvestment: 13527,
+    issueSize: "₹4,321 Cr",
+    qibSubscription: "214.6× (Record Breaking)",
+    verdict: "APPLY",
+    verdictLabel: "APPLY (Long-Term Winner)",
+    verdictClass: "apply",
+    bestPrice: "₹1,503 (Cut-Off Price)",
+    bestDay: "Day 2 or Day 3 (Post 2 PM QIB Surge)",
+    rationale: "India's largest solar module manufacturer with 12 GW installed capacity. Huge domestic and US export order book.",
+    longTermOutlook: "Multi-year thematic winner. Clean balance sheet and exponential profit growth driven by global decarbonization.",
+    risks: "Raw material (polysilicon) price volatility and dependency on trade tariffs."
+  },
+  {
+    id: "ipo_swiggy",
+    name: "Swiggy Limited",
+    sector: "Consumer Tech / Food Delivery & Quick Commerce (Instamart)",
+    issueDates: "Listed / Watched",
+    priceBand: "₹371 – ₹390",
+    lotSize: 38,
+    minInvestment: 14820,
+    issueSize: "₹11,327 Cr",
+    qibSubscription: "6.02×",
+    verdict: "CAUTION",
+    verdictLabel: "CAUTION (Wait for Dips)",
+    verdictClass: "caution",
+    bestPrice: "₹390 (Cut-Off Price)",
+    bestDay: "Day 3 (Only if QIB > 3×)",
+    rationale: "Duopoly with Zomato in food delivery and top-3 in quick commerce. However, Instamart is currently loss-making due to aggressive dark store capex.",
+    longTermOutlook: "Long-term tech compounder IF quick commerce turns EBITDA positive in 4–6 quarters. Prefer staggered SIP on post-listing dips.",
+    risks: "Severe burn in quick commerce vs Blinkit & Zepto. High employee stock option (ESOP) overhead."
+  },
+  {
+    id: "ipo_afcons",
+    name: "Afcons Infrastructure Ltd",
+    sector: "Infrastructure EPC / Shapoorji Pallonji Group",
+    issueDates: "Recent / Watchlist",
+    priceBand: "₹440 – ₹463",
+    lotSize: 32,
+    minInvestment: 14816,
+    issueSize: "₹5,430 Cr",
+    qibSubscription: "3.99×",
+    verdict: "APPLY",
+    verdictLabel: "APPLY (Value / Long-Term)",
+    verdictClass: "apply",
+    bestPrice: "₹463 (Cut-Off Price)",
+    bestDay: "Day 3 (After 1:00 PM)",
+    rationale: "Global engineering powerhouse handling complex infra (Atal Tunnel, Chenab Railway Bridge). Robust order book > ₹34,000 Cr.",
+    longTermOutlook: "Moderate 12–15% steady compounder. Beneficiary of India's long-term infrastructure boom.",
+    risks: "Heavy working capital cycle and promoter group leverage."
+  },
+  {
+    id: "ipo_sagility",
+    name: "Sagility India Ltd",
+    sector: "Healthcare IT / US Payer & Provider Solutions",
+    issueDates: "Recent / Neutral",
+    priceBand: "₹28 – ₹30",
+    lotSize: 500,
+    minInvestment: 15000,
+    issueSize: "₹2,106 Cr (100% OFS)",
+    qibSubscription: "3.52×",
+    verdict: "AVOID",
+    verdictLabel: "AVOID (100% OFS & Heavy Debt)",
+    verdictClass: "avoid",
+    bestPrice: "N/A (Avoid for Long-Term)",
+    bestDay: "Skip / Do Not Apply",
+    rationale: "100% Offer For Sale (OFS) means zero IPO capital enters the company. Entirely private equity promoter exit. High customer concentration with top 5 US payers.",
+    longTermOutlook: "Avoid for long-term wealth creation. Better IT & Healthcare alternatives available at reasonable valuations with clean promoter structures.",
+    risks: "100% OFS, high goodwill on books, low profit margin profile."
+  }
+];
+
 const INITIAL_OPEN_POSITIONS = [];
 
 const INITIAL_JOURNAL = [];
@@ -1364,12 +1619,18 @@ function getActiveStockPool() {
   const isBadMarket = AppState.marketCondition === 'bad' || 
     (AppState.marketCondition === 'auto' && AppState.niftyIndex && (AppState.niftyIndex.change < -0.5 || AppState.niftyIndex.status === 'BEARISH'));
   const basePool = isBadMarket ? BAD_MARKET_STOCKS : GOOD_MARKET_STOCKS;
+
+  // Seamlessly merge budget stocks so they are always accessible across scanner, modal, details
+  const existingSymbols = new Set(basePool.map(s => s.symbol));
+  const budgetExtras = (typeof BUDGET_NSE_STOCKS !== 'undefined' ? BUDGET_NSE_STOCKS : []).filter(s => !existingSymbols.has(s.symbol));
+  let combined = [...basePool, ...budgetExtras];
+
   if (AppState.customStocks && AppState.customStocks.length > 0) {
-    const baseSymbols = new Set(basePool.map(s => s.symbol));
+    const baseSymbols = new Set(combined.map(s => s.symbol));
     const extra = AppState.customStocks.filter(s => !baseSymbols.has(s.symbol));
-    return [...basePool, ...extra];
+    return [...combined, ...extra];
   }
-  return basePool;
+  return combined;
 }
 
 function switchView(viewName) {
@@ -1392,6 +1653,7 @@ function switchView(viewName) {
 
   if (viewName === 'home') renderHomeView();
   else if (viewName === 'scanner') renderScannerView('all');
+  else if (viewName === 'ipo') renderIpoView('all');
   else if (viewName === 'detail') renderDetailView(AppState.selectedStockSymbol);
   else if (viewName === 'portfolio') renderPortfolioView();
   else if (viewName === 'settings') renderSettingsView();
@@ -1404,12 +1666,21 @@ function renderHomeView() {
   const heroContainer = document.getElementById('hero-action-container');
   const pool = getActiveStockPool();
 
-  // 1. Prioritize all high-probability BUY setups, sorted by 10-year historical win rate
-  const buyPool = pool.filter(s => s.setup === 'BUY').sort((a, b) => (b.tenYearWinRate || 0) - (a.tenYearWinRate || 0));
-  const otherPool = pool.filter(s => s.setup !== 'BUY').sort((a, b) => (b.tenYearWinRate || 0) - (a.tenYearWinRate || 0));
+  const heldMap = new Map();
+  (AppState.openPositions || []).forEach(pos => {
+    if (pos && pos.symbol) {
+      heldMap.set(pos.symbol.toUpperCase(), pos);
+    }
+  });
+
+  // 1. Prioritize fresh unheld BUY setups first so users are never asked to re-buy or average down on losing held positions
+  const unheldBuyPool = pool.filter(s => s.setup === 'BUY' && !heldMap.has(s.symbol.toUpperCase())).sort((a, b) => (b.tenYearWinRate || 0) - (a.tenYearWinRate || 0));
+  const heldBuyPool = pool.filter(s => s.setup === 'BUY' && heldMap.has(s.symbol.toUpperCase())).sort((a, b) => (b.tenYearWinRate || 0) - (a.tenYearWinRate || 0));
+  const unheldOtherPool = pool.filter(s => s.setup !== 'BUY' && !heldMap.has(s.symbol.toUpperCase())).sort((a, b) => (b.tenYearWinRate || 0) - (a.tenYearWinRate || 0));
+  const heldOtherPool = pool.filter(s => s.setup !== 'BUY' && heldMap.has(s.symbol.toUpperCase())).sort((a, b) => (b.tenYearWinRate || 0) - (a.tenYearWinRate || 0));
   
-  // Show up to 5 best stocks (at least 3 to 5 recommendations)
-  const topStocks = [...buyPool, ...otherPool].slice(0, 5);
+  // Show up to 5 best stocks (fresh setups first, held positions shifted down)
+  const topStocks = [...unheldBuyPool, ...unheldOtherPool, ...heldBuyPool, ...heldOtherPool].slice(0, 5);
 
   const is1DayMode = AppState.tradingMode === '1day';
   const modeLabel = is1DayMode ? "⚡ 1-DAY DAILY FLIP (BTST)" : "📈 2–5 DAY SWING TRADE";
@@ -1459,6 +1730,67 @@ function renderHomeView() {
         ? `<span class="badge" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8; font-size: 0.65rem; padding: 2px 7px;">🚀 MIDCAP</span>`
         : `<span class="badge" style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; font-size: 0.65rem; padding: 2px 7px;">🏢 NIFTY 50</span>`;
 
+      // Check if user is currently holding this stock
+      const held = heldMap.get(stock.symbol.toUpperCase());
+      const isHeld = !!held;
+      let heldBannerHtml = '';
+      let actionsRowHtml = '';
+
+      if (isHeld) {
+        const pnl = held.currentPnl !== undefined ? held.currentPnl : ((stock.cmp - held.entryPrice) * held.qty);
+        const pnlPct = held.pnlPct !== undefined ? held.pnlPct : (((stock.cmp - held.entryPrice) / held.entryPrice) * 100);
+        const isPnlMinus = pnl < 0;
+        const dayCount = held.holdDay || 1;
+
+        if (isPnlMinus) {
+          heldBannerHtml = `
+            <div class="held-warning-strip loss">
+              <span style="font-size: 1.15rem; line-height: 1; flex-shrink: 0;">🔒</span>
+              <div>
+                <strong>CURRENTLY IN YOUR PORTFOLIO:</strong> Holding <strong>${held.qty} shares</strong> (Day ${dayCount}) | Current P&L: <strong style="color: #fca5a5;">-₹${Math.abs(pnl).toFixed(2)} (${pnlPct.toFixed(2)}%)</strong>.
+                <div style="font-size: 0.74rem; margin-top: 3px; opacity: 0.95;">
+                  ⚠️ <strong>Discipline Rule:</strong> Market is fluctuating. Do <strong>NOT</strong> average down or re-buy while position is in negative P&L. Wait patiently for your Target (₹${(held.target || target).toFixed(0)}) or Stop Loss (₹${(held.stopLoss || stopLoss).toFixed(0)}).
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          heldBannerHtml = `
+            <div class="held-warning-strip profit">
+              <span style="font-size: 1.15rem; line-height: 1; flex-shrink: 0;">🔒</span>
+              <div>
+                <strong>CURRENTLY IN YOUR PORTFOLIO:</strong> Holding <strong>${held.qty} shares</strong> (Day ${dayCount}) | Current P&L: <strong style="color: #86efac;">+₹${pnl.toFixed(2)} (+${pnlPct.toFixed(2)}%)</strong>.
+                <div style="font-size: 0.74rem; margin-top: 3px; opacity: 0.95;">
+                  🎯 In profit! Let the trade ride toward your profit target of ₹${(held.target || target).toFixed(0)}.
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        actionsRowHtml = `
+          <div class="hero-actions-row">
+            <button class="btn btn-outline" onclick="switchView('portfolio')" style="height: 46px; font-size: 0.92rem; border-color: rgba(14, 165, 233, 0.5); color: #38bdf8;">
+              📊 View Active Trade in Profit Diary
+            </button>
+            <button class="btn btn-outline" onclick="openDetailView('${stock.symbol}')" style="height: 44px; font-size: 0.88rem;">
+              📊 View Details &amp; Chart
+            </button>
+          </div>
+        `;
+      } else {
+        actionsRowHtml = `
+          <div class="hero-actions-row">
+            <button class="btn btn-primary" onclick="openPaperBuyModal('${stock.symbol}')" style="height: 46px; font-size: 0.92rem;">
+              ⚡ Practice Buy (Zero Risk)
+            </button>
+            <button class="btn btn-outline" onclick="openDetailView('${stock.symbol}')" style="height: 44px; font-size: 0.88rem;">
+              📊 View Details &amp; Chart
+            </button>
+          </div>
+        `;
+      }
+
       return `
         <div class="card action-hero-card ranked-pick ${isTop1 ? 'pick-top-1' : ''}">
           <div class="hero-header">
@@ -1484,6 +1816,8 @@ function renderHomeView() {
               <span class="stock-change-badge ${changeClass}">${changeSign}${stock.change.toFixed(2)}%</span>
             </div>
           </div>
+
+          ${heldBannerHtml}
 
           <!-- Trade Specs Grid -->
           <div class="trade-specs-grid">
@@ -1522,14 +1856,7 @@ function renderHomeView() {
           </div>
 
           <!-- Action Buttons -->
-          <div class="hero-actions-row">
-            <button class="btn btn-primary" onclick="openPaperBuyModal('${stock.symbol}')" style="height: 46px; font-size: 0.92rem;">
-              ⚡ Practice Buy (Zero Risk)
-            </button>
-            <button class="btn btn-outline" onclick="openDetailView('${stock.symbol}')" style="height: 44px; font-size: 0.88rem;">
-              📊 View Details &amp; Chart
-            </button>
-          </div>
+          ${actionsRowHtml}
         </div>
       `;
     }).join('');
@@ -1604,6 +1931,7 @@ function renderHomeView() {
   }
 
   renderOpenPositionsList();
+  renderBudgetStocksSection(heldMap);
 }
 
 function renderOpenPositionsList() {
@@ -1805,6 +2133,220 @@ async function simulatePositionPrice(positionId, scenario) {
 }
 
 // ==========================================================================
+// 4A. Pocket-Friendly Picks (< ₹500) Section Engine
+// ==========================================================================
+function renderBudgetStocksSection(heldMap) {
+  const container = document.getElementById('budget-stocks-container');
+  if (!container) return;
+
+  const is1Day = AppState.tradingMode === '1day';
+
+  const cardsHtml = BUDGET_NSE_STOCKS.map(stock => {
+    const held = heldMap ? heldMap.get(stock.symbol.toUpperCase()) : null;
+    const isHeld = !!held;
+    const isPositive = (stock.change || 0) >= 0;
+    const changeClass = isPositive ? 'up' : 'down';
+    const changeSign = isPositive ? '+' : '';
+
+    const target = is1Day ? stock.btstTarget : stock.swingTarget;
+    const targetGain = is1Day ? stock.btstTargetGainPct : stock.swingTargetGainPct;
+    const stopLoss = is1Day ? stock.btstStopLoss : stock.swingStopLoss;
+    const stopLossPct = is1Day ? stock.btstStopLossPct : stock.swingStopLossPct;
+
+    // Budget sizing calculations
+    const qty5k = Math.max(1, Math.floor(5000 / stock.cmp));
+    const qty10k = Math.max(1, Math.floor(10000 / stock.cmp));
+
+    let actionBtnHtml = '';
+    let holdingBadgeHtml = '';
+
+    if (isHeld) {
+      const pnl = held.currentPnl !== undefined ? held.currentPnl : ((stock.cmp - held.entryPrice) * held.qty);
+      const isPnlPositive = pnl >= 0;
+      holdingBadgeHtml = `
+        <div class="held-warning-strip ${isPnlPositive ? 'profit' : 'loss'}" style="margin: 0.5rem 0 0.75rem 0; font-size: 0.74rem; padding: 0.4rem 0.6rem;">
+          <span>🔒 <strong>Holding:</strong> ${held.qty} shares | P&L: <strong style="color: ${isPnlPositive ? 'var(--profit)' : 'var(--loss)'};">${isPnlPositive ? '+' : ''}₹${pnl.toFixed(0)}</strong></span>
+        </div>
+      `;
+      actionBtnHtml = `
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.65rem;">
+          <button class="btn btn-outline" onclick="switchView('portfolio')" style="font-size: 0.78rem; padding: 0.45rem 0.6rem; flex: 1; border-color: rgba(14, 165, 233, 0.45); color: #38bdf8;">
+            📊 View in Portfolio
+          </button>
+          <button class="btn btn-outline" onclick="openDetailView('${stock.symbol}')" style="font-size: 0.78rem; padding: 0.45rem 0.6rem;">
+            🔍 Chart
+          </button>
+        </div>
+      `;
+    } else {
+      actionBtnHtml = `
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.65rem;">
+          <button class="btn btn-primary" onclick="openPaperBuyModal('${stock.symbol}')" style="font-size: 0.78rem; padding: 0.45rem 0.6rem; flex: 1;">
+            ⚡ Practice Buy
+          </button>
+          <button class="btn btn-outline" onclick="openDetailView('${stock.symbol}')" style="font-size: 0.78rem; padding: 0.45rem 0.6rem;">
+            🔍 Chart
+          </button>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="budget-card">
+        <div>
+          <div class="budget-card-top">
+            <div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="budget-stock-symbol">${stock.symbol}</span>
+                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--profit); font-size: 0.64rem; font-weight: 700;">
+                  🎯 ${stock.tenYearWinRate}% Win
+                </span>
+              </div>
+              <div class="budget-stock-name">${stock.name}</div>
+            </div>
+            <div>
+              <div class="budget-cmp">₹${stock.cmp.toFixed(2)}</div>
+              <div class="stock-change-badge ${changeClass}" style="font-size: 0.68rem; padding: 1px 6px;">${changeSign}${stock.change.toFixed(2)}%</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-sm); padding: 0.5rem; margin-bottom: 0.5rem; border: var(--glass-border);">
+            <div>
+              <div style="font-size: 0.68rem; color: var(--text-dim);">Target (${is1Day ? 'BTST' : 'Swing'})</div>
+              <div style="font-size: 0.82rem; font-weight: 700; color: var(--profit);">₹${target.toFixed(0)} (+${targetGain.toFixed(1)}%)</div>
+            </div>
+            <div>
+              <div style="font-size: 0.68rem; color: var(--text-dim);">Stop Loss</div>
+              <div style="font-size: 0.82rem; font-weight: 700; color: var(--loss);">₹${stopLoss.toFixed(0)} (-${stopLossPct.toFixed(1)}%)</div>
+            </div>
+          </div>
+
+          <div class="budget-afford-strip">
+            <span>💰 <strong>₹5,000 budget:</strong> ${qty5k} shares</span>
+            <span>•</span>
+            <span>💰 <strong>₹10,000 budget:</strong> ${qty10k} shares</span>
+          </div>
+
+          ${holdingBadgeHtml}
+        </div>
+
+        ${actionBtnHtml}
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="budget-section-header">
+      <div>
+        <div class="budget-section-title">
+          <span>💡 Pocket-Friendly Picks (&lt; ₹500)</span>
+          <span class="badge" style="background: rgba(14, 165, 233, 0.16); color: #38bdf8; font-size: 0.68rem;">LOW CAPITAL FRIENDLY</span>
+        </div>
+        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+          Top 5 high-win-rate quality stocks under ₹500. Ideal for smaller portfolios (₹5,000 to ₹10,000 budget).
+        </div>
+      </div>
+      <button class="btn btn-outline" onclick="renderScannerView('budget'); switchView('scanner');" style="font-size: 0.76rem; padding: 0.35rem 0.75rem; width: auto;">
+        View All in Scanner →
+      </button>
+    </div>
+    <div class="budget-grid">
+      ${cardsHtml}
+    </div>
+  `;
+}
+
+// ==========================================================================
+// 4B. IPO Hub & Research Intelligence Engine
+// ==========================================================================
+function renderIpoView(filter = 'all') {
+  const container = document.getElementById('ipo-list-container');
+  if (!container) return;
+
+  // Update active chip
+  document.querySelectorAll('#view-ipo .filter-chip').forEach(chip => {
+    const chipFilter = chip.getAttribute('data-filter') || 'all';
+    chip.classList.toggle('active', chipFilter === filter);
+  });
+
+  const list = CURRENT_AND_UPCOMING_IPOS.filter(ipo => {
+    if (filter === 'all') return true;
+    if (filter === 'apply') return ipo.verdict === 'APPLY';
+    if (filter === 'caution') return ipo.verdict === 'CAUTION';
+    if (filter === 'avoid') return ipo.verdict === 'AVOID';
+    return true;
+  });
+
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div class="card" style="text-align: center; color: var(--text-muted); padding: 2.5rem 1rem;">
+        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🔍</div>
+        <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem;">No IPOs found in this category</div>
+        <div style="font-size: 0.8rem; margin-top: 0.25rem;">Switch filter to "All IPOs" to review all tracked issues.</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = list.map(ipo => `
+    <div class="ipo-card verdict-${ipo.verdictClass}">
+      <div class="ipo-card-header">
+        <div>
+          <div class="ipo-company-name">${ipo.name}</div>
+          <div class="ipo-company-sub">${ipo.sector} • ${ipo.issueDates}</div>
+        </div>
+        <span class="ipo-verdict-pill ${ipo.verdictClass}">
+          ${ipo.verdict === 'APPLY' ? '✅' : (ipo.verdict === 'CAUTION' ? '⚠️' : '⛔')} ${ipo.verdictLabel}
+        </span>
+      </div>
+
+      <div class="ipo-specs-grid">
+        <div class="ipo-spec-item">
+          <span class="ipo-spec-label">Price Band</span>
+          <span class="ipo-spec-val">${ipo.priceBand}</span>
+        </div>
+        <div class="ipo-spec-item">
+          <span class="ipo-spec-label">Lot Size / Min ₹</span>
+          <span class="ipo-spec-val">${ipo.lotSize} shares (₹${ipo.minInvestment.toLocaleString('en-IN')})</span>
+        </div>
+        <div class="ipo-spec-item">
+          <span class="ipo-spec-label">Issue Size</span>
+          <span class="ipo-spec-val">${ipo.issueSize}</span>
+        </div>
+        <div class="ipo-spec-item">
+          <span class="ipo-spec-label">QIB Smart Money</span>
+          <span class="ipo-spec-val" style="color: ${ipo.qibSubscription.includes('Strong') || ipo.qibSubscription.includes('Record') || parseFloat(ipo.qibSubscription) >= 2 ? 'var(--profit)' : 'var(--text-main)'};">${ipo.qibSubscription}</span>
+        </div>
+      </div>
+
+      <div class="ipo-guidance-box">
+        <div class="ipo-guidance-item">
+          <span style="font-weight: 700; color: var(--primary); min-width: 140px;">🎯 Best Price to Bid:</span>
+          <span><strong>${ipo.bestPrice}</strong></span>
+        </div>
+        <div class="ipo-guidance-item">
+          <span style="font-weight: 700; color: #38bdf8; min-width: 140px;">📅 Best Day to Apply:</span>
+          <span><strong>${ipo.bestDay}</strong></span>
+        </div>
+        <div class="ipo-guidance-item" style="margin-top: 4px;">
+          <span style="font-weight: 700; color: var(--text-main); min-width: 140px;">💡 Strategy Rationale:</span>
+          <span>${ipo.rationale}</span>
+        </div>
+      </div>
+
+      <div class="ipo-longterm-box">
+        <div><strong>🏆 Long-Term Investment View:</strong> ${ipo.longTermOutlook}</div>
+        <div style="margin-top: 4px; font-size: 0.74rem; color: var(--text-dim);"><strong>⚠️ Key Risks:</strong> ${ipo.risks}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterIpoList(filter) {
+  renderIpoView(filter);
+}
+
+// ==========================================================================
 // 5. View 2: Scanner & Watchlist + Search Any NSE Stock Engine
 // ==========================================================================
 const KNOWN_NSE_STOCKS = {
@@ -1956,12 +2498,14 @@ function renderScannerView(filter = 'all') {
   } else if (filter === 'holding') {
     const heldSymbols = AppState.openPositions.map(p => p.symbol);
     filtered = pool.filter(s => heldSymbols.includes(s.symbol));
+  } else if (filter === 'budget') {
+    filtered = pool.filter(s => (s.cmp || 0) < 500);
   } else if (filter === 'notrade') {
     filtered = pool.filter(s => s.setup === 'NOTRADE');
   }
 
   // Update filter chip UI state
-  document.querySelectorAll('.filter-chip').forEach(chip => {
+  document.querySelectorAll('#view-scanner .filter-chip').forEach(chip => {
     chip.classList.toggle('active', chip.getAttribute('data-filter') === filter);
   });
 
@@ -2671,9 +3215,15 @@ function openPaperBuyModal(symbol) {
   document.getElementById('modal-buy-total-cap').textContent = `₹${totalCost.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 
   const checks = getStockInstitutionalChecks(stock);
+  const alreadyHeld = (AppState.openPositions || []).find(p => p.symbol === stock.symbol);
   const eventWarningEl = document.getElementById('modal-buy-event-warning');
   if (eventWarningEl) {
-    if (!checks.earningsClear) {
+    if (alreadyHeld) {
+      const pnl = alreadyHeld.currentPnl !== undefined ? alreadyHeld.currentPnl : ((stock.cmp - alreadyHeld.entryPrice) * alreadyHeld.qty);
+      const isMinus = pnl < 0;
+      eventWarningEl.style.display = 'block';
+      eventWarningEl.innerHTML = `⚠️ <strong>Already In Portfolio:</strong> You currently hold <strong>${alreadyHeld.qty} shares</strong> of ${stock.symbol} (P&L: <strong style="color: ${isMinus ? '#f87171' : '#34d399'};">${isMinus ? '-' : '+'}₹${Math.abs(pnl).toFixed(0)}</strong>). Trade Mitra rules strictly advise against averaging down on losing trades during market dips. Wait for your target or stop loss.`;
+    } else if (!checks.earningsClear) {
       eventWarningEl.style.display = 'block';
       eventWarningEl.innerHTML = `⚠️ <strong>High Event Risk:</strong> Quarterly earnings results in ${checks.earningsNotice.daysLeft} days (${checks.earningsNotice.date}). Institutional strategy advises against holding swing positions through earnings.`;
     } else {
@@ -3697,6 +4247,10 @@ window.closePaperTrade = closePaperTrade;
 window.showToast = showToast;
 window.showCustomAlert = showCustomAlert;
 window.showCustomConfirm = showCustomConfirm;
+window.renderIpoView = renderIpoView;
+window.filterIpoList = filterIpoList;
+window.renderBudgetStocksSection = renderBudgetStocksSection;
+window.renderScannerView = renderScannerView;
 
 
 

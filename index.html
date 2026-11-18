@@ -31,7 +31,7 @@
   <title>TradeMitra — Simple Indian Stock Research & Daily Gain</title>
 
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="app.css?v=20261030_v15">
+  <link rel="stylesheet" href="app.css?v=20261119_v16">
   <!-- TradingView Lightweight Charts Standalone CDN -->
   <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 </head>
@@ -58,6 +58,7 @@
     <nav class="header-nav">
       <a href="#home" class="nav-item active" data-view="home">Today's Plan</a>
       <a href="#scanner" class="nav-item" data-view="scanner">Find Stocks</a>
+      <a href="#ipo" class="nav-item" data-view="ipo">IPO Hub 🚀</a>
       <a href="#detail" class="nav-item" data-view="detail">Past Record</a>
       <a href="#portfolio" class="nav-item" data-view="portfolio">Profit Diary</a>
       <a href="#settings" class="nav-item" data-view="settings">Settings</a>
@@ -162,6 +163,30 @@
         <!-- Rendered dynamically by app.js -->
       </div>
 
+      <!-- Pocket-Friendly / Budget Stocks Under ₹500 Section -->
+      <div id="budget-stocks-container" class="budget-stocks-container" style="margin-top: 1.25rem;">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- Current & Upcoming IPO Research Teaser Banner -->
+      <div class="card ipo-teaser-banner" onclick="switchView('ipo')" style="cursor: pointer; margin-top: 1.25rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(14, 165, 233, 0.08)); border: 1px solid rgba(16, 185, 129, 0.35); padding: 0.95rem 1.15rem; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; gap: 0.85rem; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 42px; height: 42px; border-radius: var(--radius-sm); background: rgba(16, 185, 129, 0.2); color: var(--profit); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">🚀</div>
+          <div>
+            <div style="font-weight: 700; color: var(--text-main); font-size: 0.92rem; display: flex; align-items: center; gap: 6px;">
+              <span>Current &amp; Upcoming IPO Research</span>
+              <span class="badge badge-buy" style="font-size: 0.65rem;">NEW FEATURE</span>
+            </div>
+            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+              Clear verdicts: Apply or Avoid for Long-Term, plus best bid price &amp; application day!
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width: auto; padding: 0.4rem 0.9rem; font-size: 0.8rem; background: linear-gradient(135deg, #10b981, #059669); border-color: #10b981;">
+          View IPOs →
+        </button>
+      </div>
+
       <!-- Quick Portfolio Summary Stat Grid -->
       <div class="stats-grid">
         <div class="stat-card">
@@ -258,6 +283,7 @@
       <div class="filter-bar">
         <button class="filter-chip active" data-filter="all">All Stocks</button>
         <button class="filter-chip" data-filter="setups">⭐ Ready to Buy Today</button>
+        <button class="filter-chip" data-filter="budget">💡 Budget (&lt; ₹500)</button>
         <button class="filter-chip" data-filter="midcaps">🚀 Fast-Growing Companies</button>
         <button class="filter-chip" data-filter="nifty50">🏢 Top 50 Big Companies</button>
         <button class="filter-chip" data-filter="holding">In My Practice Portfolio</button>
@@ -458,6 +484,49 @@
             </tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VIEW 6: IPO HUB (CURRENT & UPCOMING IPOS)
+         ======================================================== -->
+    <section id="view-ipo" class="view-section">
+      <div class="section-header" style="flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <h2 class="section-title">IPO Hub 🚀 (Current &amp; Upcoming IPOs)</h2>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">
+            Actionable research on Indian IPOs: Apply or Avoid for Long-Term, best price &amp; application day.
+          </span>
+        </div>
+        <div class="ipo-filter-chips" style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button class="filter-chip active" data-filter="all" onclick="filterIpoList('all')">All IPOs</button>
+          <button class="filter-chip" data-filter="apply" onclick="filterIpoList('apply')">🟢 Apply (Long-Term)</button>
+          <button class="filter-chip" data-filter="caution" onclick="filterIpoList('caution')">🟡 Caution</button>
+          <button class="filter-chip" data-filter="avoid" onclick="filterIpoList('avoid')">🔴 Avoid</button>
+        </div>
+      </div>
+
+      <!-- Golden Rules for IPO Investing Box -->
+      <div class="card" style="background: rgba(14, 165, 233, 0.06); border: 1px dashed var(--primary); padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+        <div style="font-weight: 700; color: var(--text-main); font-size: 0.9rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px;">
+          <span>💡 3 Golden Rules for Retail IPO Investors:</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem; font-size: 0.78rem; color: var(--text-muted);">
+          <div style="background: var(--bg-surface); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); border: var(--glass-border);">
+            <strong style="color: var(--primary);">1. Always Bid at Cut-Off Price:</strong> In retail quota, always tick 'Cut-Off Price' (Upper Price Band). If you bid lower, your application is automatically rejected if the IPO gets oversubscribed.
+          </div>
+          <div style="background: var(--bg-surface); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); border: var(--glass-border);">
+            <strong style="color: var(--primary);">2. Apply on Day 2 or Day 3:</strong> Never rush on Day 1. On Day 2/3, check Qualified Institutional Buyer (QIB) subscription. If big institutions bid &gt; 2x, retail investors have safety!
+          </div>
+          <div style="background: var(--bg-surface); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); border: var(--glass-border);">
+            <strong style="color: var(--primary);">3. Long-Term Holding Rule:</strong> For long-term wealth, buy companies with continuous profit growth, not loss-making hype. If GMP crashes, strong businesses still thrive!
+          </div>
+        </div>
+      </div>
+
+      <!-- Container for Dynamic IPO Cards -->
+      <div id="ipo-list-container" class="ipo-list-container">
+        <!-- Rendered dynamically by app.js -->
       </div>
     </section>
 
@@ -712,6 +781,12 @@
       </svg>
       <span>Find Stocks</span>
     </a>
+    <a href="#ipo" class="nav-item" data-view="ipo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      </svg>
+      <span>IPO Hub</span>
+    </a>
     <a href="#detail" class="nav-item" data-view="detail">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="18" y1="20" x2="18" y2="10"></line>
@@ -859,6 +934,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20261030_v15"></script>
+  <script src="app.js?v=20261119_v16"></script>
 </body>
 </html>
